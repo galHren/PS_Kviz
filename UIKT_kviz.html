@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="sl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kviz (naključno 20 vprašanj)</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background: #f6f7fb; color: #111; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 24px; }
+    .card { background: #fff; border-radius: 14px; padding: 18px 18px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    h1 { margin: 0 0 10px; font-size: 20px; }
+    .muted { color:#555; font-size: 14px; line-height: 1.4; }
+    .row { display:flex; gap:12px; flex-wrap: wrap; align-items:center; }
+    .spacer { height: 12px; }
+    button {
+      border: 0; border-radius: 10px; padding: 10px 14px;
+      background: #2b59ff; color: #fff; cursor:pointer; font-weight: 600;
+    }
+    button.secondary { background: #e9ecff; color:#16225a; }
+    button.ghost { background: transparent; border: 1px solid #d7d9e6; color:#111; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .pill { display:inline-block; padding: 4px 10px; background:#eef2ff; color:#16225a; border-radius: 999px; font-size: 12px; }
+    .qtitle { font-weight: 700; margin: 8px 0 10px; }
+    .opts { display: grid; gap: 8px; }
+    label.opt {
+      display:flex; gap:10px; align-items:flex-start;
+      padding: 10px 12px; border: 1px solid #e5e7f3; border-radius: 12px; cursor:pointer;
+      background: #fbfcff;
+    }
+    label.opt:hover { background:#f3f6ff; }
+    .footer {
+      display:flex; gap: 10px; justify-content: space-between; align-items:center; flex-wrap:wrap;
+      margin-top: 14px;
+    }
+    .hr { height:1px; background:#eceef8; margin: 14px 0; }
+    .review-item { border: 1px solid #eceef8; border-radius: 12px; padding: 12px; margin: 10px 0; background:#fff; }
+    .good { color: #0b6b2e; font-weight: 700; }
+    .bad { color: #b42318; font-weight: 700; }
+    .small { font-size: 13px; color:#333; line-height:1.45; }
+    code.k { background:#f2f4ff; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="screenStart">
+      <h1>Kviz: naključno 20 vprašanj</h1>
+      <div class="muted">
+        Pravila:
+        <ul>
+          <li>Eno vprašanje naenkrat</li>
+          <li>Gumba Nazaj / Naprej</li>
+          <li>Preveri šele na koncu</li>
+          <li>Več izbir (checkbox): delne točke + kazen za napačne izbire</li>
+          <li>Po oddaji dobiš pregled napak</li>
+        </ul>
+        Točkovanje pri checkbox vprašanjih (na nivoju vprašanja):
+        <div class="small">
+          <code class="k">točke = max(0, (pravilno_označeno - napačno_označeno) / št_pravilnih)</code>
+          <br/>Pri vprašanjih z enim pravilnim odgovorom (radio) in Da/Ne je točka 1 ali 0.
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div class="row">
+        <button id="btnStart">Začni (naključno 20)</button>
+        <span class="pill" id="bankInfo"></span>
+      </div>
+    </div>
+
+    <div class="card" id="screenQuiz" style="display:none;">
+      <div class="row" style="justify-content: space-between;">
+        <span class="pill" id="progressPill"></span>
+        <span class="pill" id="typePill"></span>
+      </div>
+      <div class="qtitle" id="qText"></div>
+      <div class="opts" id="options"></div>
+
+      <div class="footer">
+        <div class="row">
+          <button class="ghost" id="btnPrev">Nazaj</button>
+          <button class="ghost" id="btnNext">Naprej</button>
+        </div>
+        <div class="row">
+          <button class="secondary" id="btnReset">Ponastavi (nova 20)</button>
+          <button id="btnFinish">Oddaj (preveri)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="screenResult" style="display:none;">
+      <h1>Rezultat</h1>
+      <div class="muted" id="scoreLine"></div>
+      <div class="hr"></div>
+      <div class="row">
+        <button id="btnStartAgain">Začni znova (nova 20)</button>
+        <button class="secondary" id="btnBackToQuiz">Nazaj na vprašanja</button>
+      </div>
+      <div class="hr"></div>
+      <h1 style="font-size:18px;">Pregled napak</h1>
+      <div id="review"></div>
+    </div>
+  </div>
+
+<script>
+/*
+  BAZA VPRAŠANJ: vključuje
+  a) vse trditve (Da/Ne) iz tvoje liste
+  b) vsa vprašanja 1–30 iz tvoje liste (radio/checkbox)
+*/
+
+const QUESTION_BANK = [
+  // ========== a) Naloga (Da/Ne) ==========
+  { id:"a1", type:"tf", text:"Varen elektronski podpis skladen z ZEISZ praviloma izdelamo z uporabo simetrične kriptografije.", correct:false },
+  { id:"a2", type:"tf", text:"Za zagotavljanje sklepčnosti mora biti na seji državnega zbora prisotna vsaj tretjina poslancev.", correct:false },
+  { id:"a3", type:"tf", text:"IP naslov ni osebni podatek.", correct:false },
+  { id:"a4", type:"tf", text:"Evidenca dejavnosti obdelave je obvezna za vse organizacije.", correct:false },
+  { id:"a5", type:"tf", text:"Privolitev za obdelavo osebnih podatkov je veljavna tudi, če je obvezna po pogodbi, ki jo sklepa posameznik.", correct:false },
+  { id:"a6", type:"tf", text:"Zakonska, sodna in izvršilna oblast so tri veje oblasti v RS.", correct:true },
+  { id:"a7", type:"tf", text:"Okvir za upravljanje in kontrolo IT je namenjen samo notranjim uporabnikom.", correct:false },
+  { id:"a8", type:"tf", text:"Za aplikativne kontrole je v celoti zadolžen IT.", correct:false },
+  { id:"a9", type:"tf", text:"Izdajatelji kvalificiranih digitalnih potrdil so del infrastrukture zasebnih ključev.", correct:false }, // pravilno: PKI (javnih ključev)
+  { id:"a10", type:"tf", text:"Javno upravo RS sestavljajo sistemi in institucije, ki zagotavljajo oblast.", correct:false },
+  { id:"a11", type:"tf", text:"Po eIDAS sta elektronski podpis in napreden elektronski podpis različna pojma.", correct:true },
+  { id:"a12", type:"tf", text:"GDPR se ne uporablja za namene uporabe osebnih podatkov za osebne potrebe.", correct:true },
+  { id:"a13", type:"tf", text:"Ustava RS je najvišji pravni akt v Sloveniji.", correct:true },
+  { id:"a14", type:"tf", text:"Državni zbor lahko izvoli, imenuje ali razreši člane računskega sodišča.", correct:true },
+  { id:"a15", type:"tf", text:"IT si v podjetju praviloma zastavi strateške cilje, ki so usklajeni s strateškimi cilji družbe.", correct:true },
+  { id:"a16", type:"tf", text:"Merilo rezultata postavimo tako za poslovne cilje, kot za cilje IT, cilje procesa in cilje aktivnosti.", correct:true },
+  { id:"a17", type:"tf", text:"Državni zbor predstavlja vse državljane. Predstavnike volimo vsake 4 leta.", correct:true },
+  { id:"a18", type:"tf", text:"Pravica do prenosljivosti osebnih podatkov ni splošna pravica in ne velja vedno.", correct:true },
+  { id:"a19", type:"tf", text:"Zakonite podlage za obdelavo osebnih podatkov določa 6. člen GDPR.", correct:true },
+  { id:"a20", type:"tf", text:"DPO je kratica za pooblaščeno osebo za varstvo podatkov.", correct:true },
+
+  { id:"a21", type:"tf", text:"Po ZEPEP sta elektronski podpis in varen elektronski podpis različna pojma.", correct:true },
+  { id:"a22", type:"tf", text:"Varen elektronski podpis skladen z ZEPEP praviloma izdelamo z uporabo asimetrične kriptografije.", correct:true },
+  { id:"a23", type:"tf", text:"Zakone lahko sprejema le državni zbor.", correct:true },
+  { id:"a24", type:"tf", text:"Državni zbor ima več predsednikov.", correct:false },
+  { id:"a25", type:"tf", text:"Državni zbor volimo vsaka 4 leta.", correct:true },
+  { id:"a26", type:"tf", text:"Ministre imenuje predsednik države.", correct:false },
+  { id:"a27", type:"tf", text:"V Sloveniji so sodišča razdeljena v tri stopnje.", correct:true },
+  { id:"a28", type:"tf", text:"Izvršilna oblast skrbi za izvajanje zakonov.", correct:true },
+  { id:"a29", type:"tf", text:"Pravni akti praviloma začnejo veljati 15. dan po objavi v Uradnem listu RS.", correct:true },
+
+  { id:"a30", type:"tf", text:"Pri opravljanju službe za pomoč uporabnikom je potrebno beleženje in sledenje klicev strank.", correct:true },
+  { id:"a31", type:"tf", text:"V poročilo o dejavnosti službe za pomoč uporabnikom je potrebno vključiti merjenje izvedbe storitev, odzivni čas storitev, ugotavljanje trendov in ponavljajoče težave.", correct:true },
+  { id:"a32", type:"tf", text:"Obstaja velika množica nabora orodij, ki so popolnoma skladna s COBIT procesi.", correct:false },
+  { id:"a33", type:"tf", text:"Državni svet volimo vsaka 4 leta.", correct:false },
+
+  { id:"a34", type:"tf", text:"Zakone objavijo ministrstva na svojih spletnih straneh.", correct:false },
+  { id:"a35", type:"tf", text:"V Sloveniji so priznane tri manjšine.", correct:false },
+  { id:"a36", type:"tf", text:"V Sloveniji je samo eno okrajno sodišče.", correct:false },
+  { id:"a37", type:"tf", text:"Državni svet je skupina poslancev v državnem zboru.", correct:false },
+  { id:"a38", type:"tf", text:"V Sloveniji imamo štiri pokrajine.", correct:false },
+  { id:"a39", type:"tf", text:"Notarji so odvetniki, ki sestavljajo oporoke.", correct:false },
+  { id:"a40", type:"tf", text:"Besedila predpisov je možno dobiti tudi brezplačno na internetu.", correct:true },
+  { id:"a41", type:"tf", text:"Overitelji kvalificiranih digitalnih potrdil so del infrastrukture javnih ključev.", correct:true },
+  { id:"a42", type:"tf", text:"Proces upravljajte službo za pomoč uporabnikom in obvladujte incidente spada v domeno Načrtujte in organizirajte.", correct:false },
+  { id:"a43", type:"tf", text:"Finančni direktor je posvetovan o obsegu plač.", correct:true },
+  { id:"a44", type:"tf", text:"Za opredelitev informacijske arhitekture podjetja zadostuje, če izdelamo ustrezne ER diagrame podatkovnih baz.", correct:false },
+  { id:"a45", type:"tf", text:"V procesu PO2 določamo tudi lastnike podatkov. Lastniki podatkov so vedno zaposleni v informatiki.", correct:false },
+  { id:"a46", type:"tf", text:"Vsa podjetja imajo opredeljen strateški načrt in s tem tudi vizijo ter poslanstvo.", correct:false },
+  { id:"a47", type:"tf", text:"Služba za skladnost, revizijo, presojo, tveganje in varovanje so odgovorne za produkcijo IT.", correct:false },
+  { id:"a48", type:"tf", text:"CIO ima v podjetju višja pooblastila kot CEO.", correct:false },
+  { id:"a49", type:"tf", text:"Cilji podjetja so poslovna skrivnost.", correct:false },
+  { id:"a50", type:"tf", text:"Matrika ZOPS podaja natančna navodila za združevanje funkcij v manjšem podjetju.", correct:false },
+  { id:"a51", type:"tf", text:"Za vse aktivnosti, ki se odvijajo v IT sektorju, je odgovoren CFO.", correct:false },
+  { id:"a52", type:"tf", text:"Učinkovitost določa ali smo dosegli cilj procesa (npr. ali smo opravili izpit).", correct:false },
+  { id:"a53", type:"tf", text:"Funkcija ki je zadolžena za izvedbo določene aktivnosti ne more biti za njo odgovorna in seznanjena hkrati.", correct:false },
+  { id:"a54", type:"tf", text:"Zrelostni model je namenjen primerjavi zrelosti informatike v različnih podjetjih.", correct:true },
+  { id:"a55", type:"tf", text:"Kontrolni cilj PO2.3 določa, da moramo opredeliti kritičnost podatkov. Kritičnost neposredno vpliva na točko obnove podatkov (RPO).", correct:true },
+  { id:"a56", type:"tf", text:"CIO je odgovoren za opis delovnih mest v IT sektorju.", correct:true },
+  { id:"a57", type:"tf", text:"Procesi za zaposlovanje osebja v sektorju IT mora biti skladen s splošnimi kadrovskimi politikami in postopki organizacije. Za izvršitev le tega je odgovoren CIO.", correct:false },
+  { id:"a58", type:"tf", text:"Opredeljena informacijska arhitektura ugodno vpliva na razpoložljivost, skladnost in zanesljivost informacijskega sistema.", correct:true },
+  { id:"a59", type:"tf", text:"S poročilom, ki nastane pri procesu DS8 so seznanjeni: CEO, CIO, lastnik poslovnega procesa, vodja produkcije, vodja administracije IT ter skladnost, revizija, tveganja in varnost.", correct:true },
+  { id:"a60", type:"tf", text:"Če izdelamo strateški načrt IT to vpliva na učinkovitost in uspešnost.", correct:true },
+  { id:"a61", type:"tf", text:"Proces Upravljajte človeške vire v sektorju IT je uvrščen v domeno Načrtujte in organizirajte.", correct:true },
+  { id:"a62", type:"tf", text:"V strateškem načrtu IT so zapisani natančni roki za izvedbo projektov vključno s projektnim načrtom, stroški in drugimi viri, ki bodo potrebni za izvedbo.", correct:false },
+  { id:"a63", type:"tf", text:"Služba za pomoč strankam je zadolžena, da stranke obvesti o posodobitvah statusa njihovega incidenta.", correct:true },
+  { id:"a64", type:"tf", text:"Vsaka družba mora imeti strateški načrt za IT.", correct:false },
+  { id:"a65", type:"tf", text:"Cilji IT morajo izhajati iz strateških ciljev organizacije.", correct:true },
+  { id:"a66", type:"tf", text:"Podjetje mora imeti jasno izbrano ciljno skupino svojih potencialnih strank/naročnikov.", correct:true },
+  { id:"a67", type:"tf", text:"V matriki ZOPS so natančno opredeljene aktivnosti vseh zaposlenih v IT sektorju.", correct:false },
+  { id:"a68", type:"tf", text:"Matrika ZOPS določa podrobne naloge posameznih udeležencev v procesu.", correct:false },
+  { id:"a69", type:"tf", text:"Stanje procesa merimo z metrikami.", correct:true },
+  { id:"a70", type:"tf", text:"Ljudje so po COBIT eden od virov delovanja IT.", correct:true },
+  { id:"a71", type:"tf", text:"V korporacijskem slovarju podatkov določimo kdo je lastnik katerih podatkov.", correct:false },
+  { id:"a72", type:"tf", text:"Vsak proces je označen z dvočrkovno oznako in številko.", correct:true },
+  { id:"a73", type:"tf", text:"Zanesljivost je eden od informacijskih kriterijev po COBIT.", correct:true },
+  { id:"a74", type:"tf", text:"Ločevanje nalog je ena od ključnih nalog v IT.", correct:true },
+  { id:"a75", type:"tf", text:"Vizija, poslanstvo in cilji podjetja so del strateške domene podjetja.", correct:true },
+  { id:"a76", type:"tf", text:"Vsak proces je opisan tudi z matriko, iz katere je razvidno kateri procesi potrebujejo izdelke posameznega procesa.", correct:true },
+  { id:"a77", type:"tf", text:"Skladnost določa ali informacijski sistem deluje tako, kot določajo predpisi in standardi.", correct:true },
+  { id:"a78", type:"tf", text:"Kontrole so namenjene temu, da zbirajo podatke o delovanju procesov.", correct:false },
+  { id:"a79", type:"tf", text:"Ločimo aplikacijske in splošne kontrole.", correct:true },
+
+  // ========== b) Naloga (1–30) ==========
+  {
+    id:"b1", type:"multi",
+    text:"1. Sredstvo za varno elektronsko podpisovanje mora zagotavljati:",
+    options:["Asimetrični šifrirni ključ","Jasno označen psevdonim","Zanesljivo varovanje pred nepooblaščenim dostopom","Edinstvenost podatkov za elektronsko podpisovanje"],
+    correct:[2,3]
+  },
+  {
+    id:"b2", type:"single",
+    text:"2. Višja sodišča v RS:",
+    options:["So le v Ljubljani","So v Ljubljani in Mariboru","Skrbijo za sodno prakso","So predvsem pritožbena sodišča"],
+    correct:3
+  },
+  {
+    id:"b3", type:"multi",
+    text:"3. Vrhovno sodišče RS:",
+    options:["Je le v Ljubljani","Je v Ljubljani in Mariboru","Skrbi za enotno sodno prakso","Je namenjeno sojenju najhujšim zločincem"],
+    correct:[0,2]
+  },
+  {
+    id:"b4", type:"multi",
+    text:"4. Ustavno sodišče:",
+    options:["Sestavlja 6 ustavnih sodnikov","Mandat ustavnih sodnikov je 6 let","Je namenjeno nadzoru zakonodajalca","Ustavni sodniki so člani ministrstva","Sestavlja 9 ustavnih sodnikov","Mandat ustavnih sodnikov je 9 let"],
+    correct:[2,4,5]
+  },
+  {
+    id:"b5", type:"single",
+    text:"5. Katere niso veja oblasti v Republiki Sloveniji?",
+    options:["Zakonodajna oblast","Sodna oblast","Izvršilna oblast","Davčna oblast"],
+    correct:3
+  },
+  {
+    id:"b6", type:"single",
+    text:"6. Ombudsman je drugo ime za…",
+    options:["Varuha človekovih pravic"],
+    correct:0
+  },
+  {
+    id:"b7", type:"single",
+    text:"7. Neoblastne pravne akte izdajajo:",
+    options:["Ministrstva","Občine","Vlada","Društva"],
+    correct:3
+  },
+  {
+    id:"b8", type:"multi",
+    text:"8. Kdo lahko predlaga zakone v RS?",
+    options:["Poslanci","Državni svet","Vlada","Minister in 5000 volivcev"],
+    correct:[0,1,2] // d NE
+  },
+  {
+    id:"b9", type:"single",
+    text:"9. S katero angleško kratico označimo pogodbo s katero opredelimo ravni storitev?",
+    options:["SLA"],
+    correct:0
+  },
+  {
+    id:"b10", type:"multi",
+    text:"10. Katere so osnovne komponente PKI:",
+    options:["DIR","CA"],
+    correct:[0,1]
+  },
+  {
+    id:"b11", type:"multi",
+    text:"11. Na kaj se po COBIT osredotočajo procesi v domeni Načrtujte in organizirajte?",
+    options:["Zagotavljanje kibernetske varnosti","Razumevanje in upravljanje tveganj IT","Uskladitev poslovne in IT strategije","Določitev tehnološke usmeritve"],
+    correct:[1,2,3]
+  },
+  {
+    id:"b12", type:"multi",
+    text:"12. Katera od naslednjih so sredstva za komuniciranje na daljavo?",
+    options:["Pisemske pošiljke","Telefonski pogovori","Katalogi","Televizijska prodaja"],
+    correct:[0,1,2,3]
+  },
+  {
+    id:"b13", type:"single",
+    text:"13. Kaj se določa z Zakonom o varstvu osebnih podatkov?",
+    options:["Določajo se pravice, obveznosti, načela in ukrepi, s katerimi se preprečujejo neustavni, nezakoniti in neupravičeni posegi v zasebnost in dostojnost posameznika."],
+    correct:0
+  },
+  {
+    id:"b14", type:"multi",
+    text:"14. Katera so osnovna načela glede neposrednega trženja oz. pošiljanja komercialnih sporočil?",
+    options:["Upoštevanje Zakona o varstvu osebnih podatkov in GDPR","Nedvoumno jasno je navedena fizična ali pravna oseba, v imenu katere je bilo komercialno sporočilo poslano","Ko naslovnik enkrat sprejme nadaljnjo uporabo, tega ne more več preklicati","Potrebno je soglasje naslovnika"],
+    correct:[0,1,3]
+  },
+  {
+    id:"b15", type:"single",
+    text:"15. IT je v produkcijo pravočasno predal programsko opremo in porabil predvidena sredstva, vendar rešitev ne deluje skladno z zahtevami uporabnikov. Kateri IT kriterij po COBIT ni bil dosežen?",
+    options:["Uspešnost"],
+    correct:0
+  },
+  {
+    id:"b16", type:"multi",
+    text:"16. Kateri zakon/i urejajo področje nezaželene elektronske pošte SPAM?",
+    options:["Zakon o varstvu osebnih podatkov","Zakon o varstvu elektronske pošte","Zakon o elektronskem poslovanju na trgu","Zakon o elektronskih komunikacijah"],
+    correct:[2,3]
+  },
+  {
+    id:"b17", type:"single",
+    text:"17. Ali je za začetek opravljanja in izvajanje dejavnosti storitev informacijske družbe treba pridobiti predhodno dovoljenje?",
+    options:["Ne"],
+    correct:0
+  },
+  {
+    id:"b18", type:"multi",
+    text:"18. Prodaja v elektronski trgovini pomeni tudi sklenitev pogodbe. Kateri zakon ureja to vrsto pogodbe?",
+    options:["Zakon o varstvu potrošnikov","Zakon o pogodbenih odnosih","Zakon o elektronskem poslovanju na trgu","Zakon o elektronskih komunikacijah"],
+    correct:[0,2]
+  },
+  {
+    id:"b19", type:"multi",
+    text:"19. Katere zahteve mora izpolnjevati varen elektronski podpis?",
+    options:["Iz njega je mogoče zanesljivo ugotoviti podpisnika","Z njim je mogoče identificirati podpisnika","Enolično povezan s podpisnikom","Povezan mora biti izključno s podpisnikom"],
+    correct:[0,2,3]
+  },
+  {
+    id:"b20", type:"single",
+    text:"20. Kdaj se lahko obdelujejo osebni podatki v javnem sektorju?",
+    options:["Kadar tako odloči sodišče","Samo ob zaključku vsakega fiskalnega leta","Kadar tako zahteva policija","Kadar to določa zakon"],
+    correct:3
+  },
+  {
+    id:"b21", type:"multi",
+    text:"21. Dostop do katerih podatkov mora zagotoviti ponudnik storitev informacijske družbe prejemnikom storitev?",
+    options:["Davčno številko","Veljaven elektronski naslov za hitro in učinkovito komuniciranje","Podatke o podjetju in sedežu ponudnika storitev","EMŠO"],
+    correct:[1,2]
+  },
+  {
+    id:"b22", type:"multi",
+    text:"22. Zakon o elektronskih komunikacijah določa:",
+    options:["Pravila uporabe piškotkov na spletnih straneh","Neželeno komunikacijo (SPAM)","Obvezno vsebino piškotkov","Pravila sklepanja pogodb v elektronski obliki"],
+    correct:[0,1]
+  },
+  {
+    id:"b23", type:"multi",
+    text:"23. Komu je vse namenjen kontrolni okvir COBIT?",
+    options:["Direktorjem","Poslovnemu vodstvu","Vodstvu IT","Revizorjem in presojevalcem"],
+    correct:[0,1,2,3]
+  },
+  {
+    id:"b24", type:"multi",
+    text:"24. Pravni akti veljajo:",
+    options:["Vedno za naprej (prihodnost)","Vedno za nazaj (preteklost)","Do njihove razveljavitve","Do njihove objave v uradnem listu RS"],
+    correct:[0,2]
+  },
+  {
+    id:"b25", type:"single",
+    text:"25. Kako se imenuje evidenca, v kateri so podatki iz katalogov zbirk osebnih podatkov?",
+    options:["Katalog zbirke osebnih podatkov","Register zbirk osebnih podatkov","Pravilnik o varovanju osebnih podatkov","Seznam zbirk osebnih podatkov"],
+    correct:1
+  },
+  {
+    id:"b26", type:"multi",
+    text:"26. Na kaj se osredotočajo procesi v domeni »Načrtujte in organizirajte«?",
+    options:["Uskladitev poslovne in IT strategije","Razumevanje in upravljanje tveganj IT","Optimizacijo stroškov","Merjenje delovanja IT"],
+    correct:[0,1]
+  },
+  {
+    id:"b27", type:"single",
+    text:"27. Zakon o varstvu osebnih podatkov ureja področje:",
+    options:["Prodaje osebnih podatkov","Tiskanje osebnih podatkov","Obdelave osebnih podatkov","Hrambe dokumentarnega gradiva z osebnimi podatki"],
+    correct:2
+  },
+  {
+    id:"b28", type:"multi",
+    text:"28. Ponudnik storitve lahko pošilja komercialna sporočila, ki so del storitev informacijske družbe, če:",
+    options:[
+      "Prejemnik storitve vnaprej soglaša s pošiljanjem",
+      "Je komercialno sporočilo kot tako jasno razpoznavno",
+      "Je nedvoumno navedena fizična ali pravna oseba, v imenu katere je komercialno sporočilo poslano",
+      "So jasno in nedvoumno navedeni pogoji za sprejem posebnih ponudb, ki so povezane s popusti, premijami in darili, ki morajo biti kot taki nedvoumno označeni"
+    ],
+    correct:[0,1,2,3]
+  },
+  {
+    id:"b29", type:"single",
+    text:"29. Kaj se določa z Zakonom o varstvu osebnih podatkov?",
+    options:["… nezakoniti in neupravičeni posegi …"],
+    correct:0
+  },
+  {
+    id:"b30", type:"multi",
+    text:"30. Katera so osnovna načela glede neposrednega trženja oz. pošiljanja komercialnih sporočil?",
+    options:["Nedvoumno jasno je navedena fizična ali pravna oseba, v imenu katere je bilo komercialno sporočilo poslano","Potrebno je soglasje naslovnika"],
+    correct:[0,1]
+  }
+];
+
+const PICK_COUNT = 20;
+
+const state = {
+  picked: [],
+  answers: new Map(),
+  idx: 0,
+  submitted: false,
+  lastResult: null
+};
+
+const el = (id) => document.getElementById(id);
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickRandomQuestions() {
+  const bank = QUESTION_BANK.slice();
+  if (bank.length < PICK_COUNT) {
+    alert("Baza vprašanj je manjša od 20. Dodaj več vprašanj v QUESTION_BANK.");
+    return shuffle(bank);
+  }
+  return shuffle(bank).slice(0, PICK_COUNT);
+}
+
+function resetQuiz() {
+  state.picked = pickRandomQuestions();
+  state.answers = new Map();
+  state.idx = 0;
+  state.submitted = false;
+  state.lastResult = null;
+  showScreen("quiz");
+  renderQuestion();
+}
+
+function showScreen(which) {
+  el("screenStart").style.display = (which === "start") ? "block" : "none";
+  el("screenQuiz").style.display  = (which === "quiz")  ? "block" : "none";
+  el("screenResult").style.display= (which === "result")? "block" : "none";
+}
+
+function qTypeLabel(q) {
+  if (q.type === "tf") return "Da/Ne";
+  if (q.type === "single") return "Ena izbira";
+  if (q.type === "multi") return "Več izbir (checkbox)";
+  return q.type;
+}
+
+function ensureDefaultAnswer(q) {
+  if (state.answers.has(q.id)) return;
+  if (q.type === "tf") state.answers.set(q.id, null);
+  else if (q.type === "single") state.answers.set(q.id, null);
+  else if (q.type === "multi") state.answers.set(q.id, new Set());
+}
+
+function renderQuestion() {
+  const q = state.picked[state.idx];
+  ensureDefaultAnswer(q);
+
+  el("progressPill").textContent = `Vprašanje ${state.idx + 1} / ${state.picked.length}`;
+  el("typePill").textContent = qTypeLabel(q);
+  el("qText").textContent = q.text;
+
+  const opts = el("options");
+  opts.innerHTML = "";
+
+  if (q.type === "tf") {
+    const options = ["Da", "Ne"];
+    options.forEach((label, i) => {
+      const val = (i === 0);
+      const current = state.answers.get(q.id);
+      const checked = (current === val);
+
+      const id = `opt_${q.id}_${i}`;
+      const lab = document.createElement("label");
+      lab.className = "opt";
+      lab.setAttribute("for", id);
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = `q_${q.id}`;
+      input.id = id;
+      input.checked = checked;
+      input.addEventListener("change", () => state.answers.set(q.id, val));
+
+      const span = document.createElement("span");
+      span.textContent = label;
+
+      lab.appendChild(input);
+      lab.appendChild(span);
+      opts.appendChild(lab);
+    });
+  } else if (q.type === "single") {
+    q.options.forEach((text, i) => {
+      const current = state.answers.get(q.id);
+      const id = `opt_${q.id}_${i}`;
+      const lab = document.createElement("label");
+      lab.className = "opt";
+      lab.setAttribute("for", id);
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = `q_${q.id}`;
+      input.id = id;
+      input.checked = (current === i);
+      input.addEventListener("change", () => state.answers.set(q.id, i));
+
+      const span = document.createElement("span");
+      span.textContent = text;
+
+      lab.appendChild(input);
+      lab.appendChild(span);
+      opts.appendChild(lab);
+    });
+  } else if (q.type === "multi") {
+    q.options.forEach((text, i) => {
+      const set = state.answers.get(q.id);
+      const checked = set.has(i);
+      const id = `opt_${q.id}_${i}`;
+
+      const lab = document.createElement("label");
+      lab.className = "opt";
+      lab.setAttribute("for", id);
+
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.id = id;
+      input.checked = checked;
+      input.addEventListener("change", () => {
+        const s = state.answers.get(q.id);
+        if (input.checked) s.add(i);
+        else s.delete(i);
+      });
+
+      const span = document.createElement("span");
+      span.textContent = text;
+
+      lab.appendChild(input);
+      lab.appendChild(span);
+      opts.appendChild(lab);
+    });
+  }
+
+  el("btnPrev").disabled = (state.idx === 0);
+  el("btnNext").disabled = (state.idx === state.picked.length - 1);
+}
+
+function calcQuestionScore(q) {
+  const ans = state.answers.get(q.id);
+
+  if (q.type === "tf") {
+    if (ans === null) return { score: 0, max: 1, detail: { answered:false } };
+    const ok = (ans === q.correct);
+    return { score: ok ? 1 : 0, max: 1, detail: { ok, answered:true } };
+  }
+
+  if (q.type === "single") {
+    if (ans === null) return { score: 0, max: 1, detail: { answered:false } };
+    const ok = (ans === q.correct);
+    return { score: ok ? 1 : 0, max: 1, detail: { ok, answered:true } };
+  }
+
+  if (q.type === "multi") {
+    const correctSet = new Set(q.correct);
+    const selected = ans;
+    const numCorrect = correctSet.size;
+
+    let correctSelected = 0;
+    let wrongSelected = 0;
+
+    for (const i of selected) {
+      if (correctSet.has(i)) correctSelected++;
+      else wrongSelected++;
+    }
+
+    let raw = (correctSelected - wrongSelected) / (numCorrect || 1);
+    if (raw < 0) raw = 0;
+    if (raw > 1) raw = 1;
+
+    return {
+      score: raw,
+      max: 1,
+      detail: { correctSelected, wrongSelected, numCorrect, answered: selected.size > 0 }
+    };
+  }
+
+  return { score: 0, max: 1, detail: { answered:false } };
+}
+
+function formatUserAnswer(q) {
+  const ans = state.answers.get(q.id);
+
+  if (q.type === "tf") {
+    if (ans === null) return "Brez odgovora";
+    return ans ? "Da" : "Ne";
+  }
+  if (q.type === "single") {
+    if (ans === null) return "Brez odgovora";
+    return q.options[ans] ?? "Brez odgovora";
+  }
+  if (q.type === "multi") {
+    const set = ans;
+    if (!set || set.size === 0) return "Brez odgovora";
+    const parts = Array.from(set).sort((a,b)=>a-b).map(i => q.options[i]);
+    return parts.join("; ");
+  }
+  return "Brez odgovora";
+}
+
+function formatCorrectAnswer(q) {
+  if (q.type === "tf") return q.correct ? "Da" : "Ne";
+  if (q.type === "single") return q.options[q.correct];
+  if (q.type === "multi") return q.correct.map(i => q.options[i]).join("; ");
+  return "";
+}
+
+function submitQuiz() {
+  const perQ = state.picked.map(q => {
+    const r = calcQuestionScore(q);
+    return { q, ...r };
+  });
+
+  const total = perQ.reduce((s,x)=>s + x.score, 0);
+  const max = perQ.reduce((s,x)=>s + x.max, 0);
+  const pct = max > 0 ? (total / max) * 100 : 0;
+
+  state.submitted = true;
+  state.lastResult = { perQ, total, max, pct };
+
+  renderResult();
+  showScreen("result");
+}
+
+function renderResult() {
+  const r = state.lastResult;
+  const totalRounded = Math.round(r.total * 100) / 100;
+  const pctRounded = Math.round(r.pct * 10) / 10;
+
+  el("scoreLine").textContent = `Dosežene točke: ${totalRounded} / ${r.max} (${pctRounded}%).`;
+
+  const review = el("review");
+  review.innerHTML = "";
+
+  const wrong = r.perQ.filter(x => x.score < x.max);
+  if (wrong.length === 0) {
+    const div = document.createElement("div");
+    div.className = "review-item";
+    div.innerHTML = `<div class="good">Brez napak.</div>`;
+    review.appendChild(div);
+    return;
+  }
+
+  wrong.forEach((x, idx) => {
+    const q = x.q;
+    const div = document.createElement("div");
+    div.className = "review-item";
+
+    const userAns = formatUserAnswer(q);
+    const corr = formatCorrectAnswer(q);
+
+    const scoreInfo = (q.type === "multi")
+      ? `Točke: ${Math.round(x.score * 100) / 100} / 1 (pravilno označeno: ${x.detail.correctSelected}, napačno označeno: ${x.detail.wrongSelected})`
+      : `Točke: ${x.score} / 1`;
+
+    div.innerHTML = `
+      <div class="bad">Napaka ${idx + 1}</div>
+      <div class="small"><strong>Vprašanje:</strong> ${q.text}</div>
+      <div class="small"><strong>Tvoj odgovor:</strong> ${userAns}</div>
+      <div class="small"><strong>Pravilno:</strong> ${corr}</div>
+      <div class="small">${scoreInfo}</div>
+    `;
+    review.appendChild(div);
+  });
+}
+
+function goPrev() { if (state.idx > 0) { state.idx--; renderQuestion(); } }
+function goNext() { if (state.idx < state.picked.length - 1) { state.idx++; renderQuestion(); } }
+
+el("btnStart").addEventListener("click", resetQuiz);
+el("btnPrev").addEventListener("click", goPrev);
+el("btnNext").addEventListener("click", goNext);
+el("btnFinish").addEventListener("click", submitQuiz);
+el("btnReset").addEventListener("click", resetQuiz);
+el("btnStartAgain").addEventListener("click", resetQuiz);
+el("btnBackToQuiz").addEventListener("click", () => showScreen("quiz"));
+
+el("bankInfo").textContent = `Baza: ${QUESTION_BANK.length} vprašanj. Vsak zagon izbere 20.`;
+showScreen("start");
+</script>
+</body>
+</html>
