@@ -6,68 +6,95 @@
   <title>Kviz (naključno 20 vprašanj)</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; background: #f6f7fb; color: #111; }
+    body { margin: 0; background: #0b1020; color: #e8ecff; }
     .wrap { max-width: 920px; margin: 0 auto; padding: 24px; }
-    .card { background: #fff; border-radius: 14px; padding: 18px 18px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
-    h1 { margin: 0 0 10px; font-size: 20px; }
-    .muted { color:#555; font-size: 14px; line-height: 1.4; }
+    .card { background: #121a33; border-radius: 14px; padding: 18px 18px; box-shadow: 0 10px 28px rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.08); }
+    h1 { margin: 0 0 10px; font-size: 20px; color:#f2f5ff; }
+    .muted { color:#b9c2ee; font-size: 14px; line-height: 1.4; }
     .row { display:flex; gap:12px; flex-wrap: wrap; align-items:center; }
     .spacer { height: 12px; }
+
     button {
       border: 0; border-radius: 10px; padding: 10px 14px;
-      background: #2b59ff; color: #fff; cursor:pointer; font-weight: 600;
+      background: #2b59ff; color: #fff; cursor:pointer; font-weight: 700;
+      box-shadow: 0 10px 20px rgba(43,89,255,.25);
     }
-    button.secondary { background: #e9ecff; color:#16225a; }
-    button.ghost { background: transparent; border: 1px solid #d7d9e6; color:#111; }
+    button.secondary { background: #1b254a; color:#e8ecff; box-shadow:none; border:1px solid rgba(255,255,255,.10); }
+    button.ghost { background: transparent; border: 1px solid rgba(255,255,255,.18); color:#e8ecff; box-shadow:none; }
     button:disabled { opacity:.55; cursor:not-allowed; }
-    .pill { display:inline-block; padding: 4px 10px; background:#eef2ff; color:#16225a; border-radius: 999px; font-size: 12px; }
-    .qtitle { font-weight: 700; margin: 8px 0 10px; }
-    .opts { display: grid; gap: 8px; }
+
+    .pill { display:inline-block; padding: 4px 10px; background:#1b254a; color:#cfe0ff; border-radius: 999px; font-size: 12px; border:1px solid rgba(255,255,255,.10); }
+    .qtitle { font-weight: 800; margin: 10px 0 10px; color:#f2f5ff; }
+    .opts { display: grid; gap: 10px; }
+
     label.opt {
       display:flex; gap:10px; align-items:flex-start;
-      padding: 10px 12px; border: 1px solid #e5e7f3; border-radius: 12px; cursor:pointer;
-      background: #fbfcff;
+      padding: 10px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; cursor:pointer;
+      background: #0f1730;
     }
-    label.opt:hover { background:#f3f6ff; }
+    label.opt:hover { background:#111c38; }
+    input { accent-color: #2b59ff; }
+
     .footer {
       display:flex; gap: 10px; justify-content: space-between; align-items:center; flex-wrap:wrap;
       margin-top: 14px;
     }
-    .hr { height:1px; background:#eceef8; margin: 14px 0; }
-    .review-item { border: 1px solid #eceef8; border-radius: 12px; padding: 12px; margin: 10px 0; background:#fff; }
-    .good { color: #0b6b2e; font-weight: 700; }
-    .bad { color: #b42318; font-weight: 700; }
-    .small { font-size: 13px; color:#333; line-height:1.45; }
-    code.k { background:#f2f4ff; padding: 2px 6px; border-radius: 6px; }
+    .hr { height:1px; background: rgba(255,255,255,.10); margin: 14px 0; }
+    .small { font-size: 13px; color:#c6d0ff; line-height:1.45; }
+    code.k { background:#0f1730; border:1px solid rgba(255,255,255,.10); padding: 2px 6px; border-radius: 6px; color:#dce4ff; }
 
-    /* ---- result summary like screenshot ---- */
-    .summary-box { padding: 14px; border: 1px solid #eceef8; border-radius: 12px; background:#fbfcff; }
-    .summary-title { font-weight: 800; margin-bottom: 6px; }
-    .summary-line { font-size: 14px; color:#111; }
+    /* ---- result summary ---- */
+    .summary-box { padding: 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background:#0f1730; }
+    .summary-title { font-weight: 900; margin-bottom: 6px; color:#f2f5ff; }
+    .summary-line { font-size: 14px; color:#e8ecff; }
     .badges { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
     .badge {
       display:flex; align-items:center; gap:8px;
-      padding: 6px 10px; border-radius: 10px; font-size: 13px; font-weight: 700;
-      border: 1px solid #e5e7f3; background:#fff;
+      padding: 6px 10px; border-radius: 10px; font-size: 13px; font-weight: 800;
+      border: 1px solid rgba(255,255,255,.14); background:#121a33;
     }
-    .badge.ok { border-color:#b7ebc6; }
-    .badge.bad { border-color:#ffd1cc; }
-    .badge.warn { border-color:#ffe8a3; }
-    .badge.neutral { border-color:#d7d9e6; }
+    .badge.ok { border-color: rgba(34,197,94,.45); }
+    .badge.bad { border-color: rgba(239,68,68,.45); }
+    .badge.warn { border-color: rgba(245,158,11,.45); }
+    .badge.neutral { border-color: rgba(148,163,184,.35); }
     .badge .dot {
       width: 16px; height: 16px; border-radius: 4px; display:inline-grid; place-items:center;
       font-size: 12px; line-height: 1;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
     }
 
-    /* ---- error list rows like screenshot ---- */
+    /* ---- error list rows ---- */
     .error-row {
       display:flex; justify-content:space-between; align-items:center;
-      border: 1px solid #eceef8; border-radius: 12px; padding: 12px;
-      margin: 10px 0; background:#fff;
+      border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 12px;
+      margin: 10px 0; background:#0f1730;
     }
-    .error-left { font-size: 14px; color:#111; }
-    .error-left b { font-weight: 800; }
-    .error-score { font-weight: 800; font-variant-numeric: tabular-nums; }
+    .error-left { font-size: 14px; color:#e8ecff; }
+    .error-left b { font-weight: 900; color:#f2f5ff; }
+    .error-score { font-weight: 900; font-variant-numeric: tabular-nums; color:#f2f5ff; }
+
+    /* ---- expanded details for wrong questions ---- */
+    .error-details { margin-top: 10px; display:grid; gap:8px; }
+    .detail-line { font-size: 13px; color:#c6d0ff; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+    .chip {
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 5px 8px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      font-size: 12px; font-weight: 700;
+      color:#dce4ff;
+    }
+    .chip.ok { border-color: rgba(34,197,94,.45); }
+    .chip.bad { border-color: rgba(239,68,68,.45); }
+    .chip.miss { border-color: rgba(245,158,11,.45); }
+
+    .optlist { margin: 6px 0 0; padding-left: 18px; color:#c6d0ff; }
+    .optlist li { margin: 4px 0; }
+    .mark-ok { color: #22c55e; font-weight: 900; }
+    .mark-bad { color: #ef4444; font-weight: 900; }
+    .mark-miss { color: #f59e0b; font-weight: 900; }
   </style>
 </head>
 <body>
@@ -141,7 +168,6 @@
   a) vse trditve (Da/Ne) iz tvoje liste
   b) vsa vprašanja 1–30 iz tvoje liste (radio/checkbox)
 */
-
 const QUESTION_BANK = [
   // ========== a) Naloga (Da/Ne) ==========
   { id:"a1", type:"tf", text:"Varen elektronski podpis skladen z ZEISZ praviloma izdelamo z uporabo simetrične kriptografije.", correct:false },
@@ -333,7 +359,7 @@ const QUESTION_BANK = [
   {
     id:"b18", type:"multi",
     text:"18. Prodaja v elektronski trgovini pomeni tudi sklenitev pogodbe. Kateri zakon ureja to vrsto pogodbe",
-    options:["Zakon o varstvu potrošnikov","Zakon o pogodbenih odnosih","Zakon o elektronskem poslovanju na trgu","Zakon o elektronskih komunikacijah"],
+    options:["Zakon o varstvu potrošnikov","Zakon o pogodbenih odnosih","Zakon o elektronskem poslovovanju na trgu","Zakon o elektronskih komunikacijah"],
     correct:[0,2]
   },
   {
@@ -380,7 +406,7 @@ const QUESTION_BANK = [
   },
   {
     id:"b26", type:"multi",
-    text:"26. Na kaj se osredotočajo procesi v domeni »Načrtujete in organizirajte«?",
+    text:"26. Na kaj se osredotočajo procesi v domeni »Načrtujte in organizirajte«?",
     options:["Uskladitev poslovne in IT strategije","Razumevanje in upravljanje tveganj IT","Optimizacijo stroškov","Merjenje delovanja IT"],
     correct:[0,1]
   },
@@ -626,15 +652,86 @@ function submitQuiz() {
   showScreen("result");
 }
 
+/* ---------- helpers for detailed correctness display ---------- */
+function getUserAnswerIndices(q) {
+  const ans = state.answers.get(q.id);
+  if (q.type === "multi") return Array.from(ans || []).sort((a,b)=>a-b);
+  if (q.type === "single") return (ans === null ? [] : [ans]);
+  if (q.type === "tf") {
+    if (ans === null) return [];
+    // map Da/Ne to indices 0/1
+    return [ans ? 0 : 1];
+  }
+  return [];
+}
+
+function getCorrectAnswerIndices(q) {
+  if (q.type === "multi") return q.correct.slice().sort((a,b)=>a-b);
+  if (q.type === "single") return [q.correct];
+  if (q.type === "tf") return [q.correct ? 0 : 1];
+  return [];
+}
+
+function getOptionLabel(q, idx) {
+  if (q.type === "tf") return (idx === 0) ? "Da" : "Ne";
+  return q.options[idx];
+}
+
+function renderOptionDiffList(q) {
+  // For multi: show each option with marker (✓ correct chosen, ✗ wrong chosen, ! missing correct)
+  // For single/tf: show chosen and correct lines + markers
+  const userIdx = new Set(getUserAnswerIndices(q));
+  const corrIdx = new Set(getCorrectAnswerIndices(q));
+
+  if (q.type === "multi") {
+    const items = [];
+    for (let i=0; i<q.options.length; i++) {
+      const chosen = userIdx.has(i);
+      const correct = corrIdx.has(i);
+
+      if (chosen && correct) items.push(`<li><span class="mark-ok">✓</span> ${escapeHtml(q.options[i])}</li>`);
+      else if (chosen && !correct) items.push(`<li><span class="mark-bad">✗</span> ${escapeHtml(q.options[i])}</li>`);
+      else if (!chosen && correct) items.push(`<li><span class="mark-miss">!</span> ${escapeHtml(q.options[i])}</li>`);
+      else items.push(`<li>${escapeHtml(q.options[i])}</li>`);
+    }
+    return `<ul class="optlist">${items.join("")}</ul>`;
+  }
+
+  // single or tf:
+  const user = getUserAnswerIndices(q);
+  const corr = getCorrectAnswerIndices(q);
+
+  const userText = user.length ? escapeHtml(getOptionLabel(q, user[0])) : "Brez odgovora";
+  const corrText = escapeHtml(getOptionLabel(q, corr[0]));
+
+  const ok = (user.length && user[0] === corr[0]);
+
+  return `
+    <div class="chips">
+      <span class="chip ${ok ? "ok" : "bad"}">${ok ? "✓" : "✗"} Tvoj odgovor: ${userText}</span>
+      <span class="chip ok">✓ Pravilno: ${corrText}</span>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
 function renderResult() {
   const r = state.lastResult;
 
-  // --- score line like screenshot ---
+  // --- score line ---
   const totalRounded = Math.round(r.total * 100) / 100;
   const pctRounded = Math.round(r.pct * 10) / 10;
   el("scoreLine").textContent = `Rezultat: ${totalRounded} / ${r.max} (${pctRounded}%)`;
 
-  // --- aggregate counts (checkbox-style counts) ---
+  // --- aggregate counts (checkbox-style counts; same as before) ---
   let correctChosen = 0;
   let wrongChosen = 0;
   let missingCorrect = 0;
@@ -658,7 +755,7 @@ function renderResult() {
     }
   });
 
-  // --- badges row ---
+  // --- badges ---
   const badges = el("summaryBadges");
   badges.innerHTML = "";
 
@@ -674,7 +771,7 @@ function renderResult() {
   badges.appendChild(badge("warn", "⚠️", "manjkajočih pravilnih", missingCorrect));
   badges.appendChild(badge("neutral", "📝", "Vprašanja z izgubo točk", questionsWithLoss));
 
-  // --- error list like screenshot (#N text ..... score) ---
+  // --- errors list with details (what was right/wrong) ---
   const review = el("review");
   review.innerHTML = "";
 
@@ -694,14 +791,44 @@ function renderResult() {
     const q = x.q;
     const div = document.createElement("div");
     div.className = "error-row";
+    div.style.flexDirection = "column";
+    div.style.alignItems = "stretch";
 
     const scoreStr = `${(Math.round(x.score * 100) / 100).toFixed(2)}/1.00`;
     const leftText = `#${x.idx + 1} ${q.text}`;
 
-    div.innerHTML = `
-      <div class="error-left"><b>${leftText}</b></div>
+    // header row (text + score)
+    const header = document.createElement("div");
+    header.className = "row";
+    header.style.justifyContent = "space-between";
+    header.innerHTML = `
+      <div class="error-left"><b>${escapeHtml(leftText)}</b></div>
       <div class="error-score">${scoreStr}</div>
     `;
+
+    // details
+    const details = document.createElement("div");
+    details.className = "error-details";
+
+    // Legend chips for multi
+    let legend = "";
+    if (q.type === "multi") {
+      legend = `
+        <div class="chips">
+          <span class="chip ok">✓ pravilno označeno</span>
+          <span class="chip bad">✗ napačno označeno</span>
+          <span class="chip miss">! manjkajoče pravilno</span>
+        </div>
+      `;
+    }
+
+    details.innerHTML = `
+      ${legend}
+      <div class="detail-line">${renderOptionDiffList(q)}</div>
+    `;
+
+    div.appendChild(header);
+    div.appendChild(details);
     review.appendChild(div);
   });
 }
