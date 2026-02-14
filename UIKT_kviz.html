@@ -39,6 +39,35 @@
     .bad { color: #b42318; font-weight: 700; }
     .small { font-size: 13px; color:#333; line-height:1.45; }
     code.k { background:#f2f4ff; padding: 2px 6px; border-radius: 6px; }
+
+    /* ---- result summary like screenshot ---- */
+    .summary-box { padding: 14px; border: 1px solid #eceef8; border-radius: 12px; background:#fbfcff; }
+    .summary-title { font-weight: 800; margin-bottom: 6px; }
+    .summary-line { font-size: 14px; color:#111; }
+    .badges { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .badge {
+      display:flex; align-items:center; gap:8px;
+      padding: 6px 10px; border-radius: 10px; font-size: 13px; font-weight: 700;
+      border: 1px solid #e5e7f3; background:#fff;
+    }
+    .badge.ok { border-color:#b7ebc6; }
+    .badge.bad { border-color:#ffd1cc; }
+    .badge.warn { border-color:#ffe8a3; }
+    .badge.neutral { border-color:#d7d9e6; }
+    .badge .dot {
+      width: 16px; height: 16px; border-radius: 4px; display:inline-grid; place-items:center;
+      font-size: 12px; line-height: 1;
+    }
+
+    /* ---- error list rows like screenshot ---- */
+    .error-row {
+      display:flex; justify-content:space-between; align-items:center;
+      border: 1px solid #eceef8; border-radius: 12px; padding: 12px;
+      margin: 10px 0; background:#fff;
+    }
+    .error-left { font-size: 14px; color:#111; }
+    .error-left b { font-weight: 800; }
+    .error-score { font-weight: 800; font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body>
@@ -88,13 +117,18 @@
     </div>
 
     <div class="card" id="screenResult" style="display:none;">
-      <h1>Rezultat</h1>
-      <div class="muted" id="scoreLine"></div>
+      <div class="summary-box">
+        <div class="summary-title">Povzetek</div>
+        <div class="summary-line" id="scoreLine"></div>
+        <div class="badges" id="summaryBadges"></div>
+      </div>
+
       <div class="hr"></div>
       <div class="row">
         <button id="btnStartAgain">Začni znova (nova 20)</button>
         <button class="secondary" id="btnBackToQuiz">Nazaj na vprašanja</button>
       </div>
+
       <div class="hr"></div>
       <h1 style="font-size:18px;">Pregled napak</h1>
       <div id="review"></div>
@@ -118,7 +152,7 @@ const QUESTION_BANK = [
   { id:"a6", type:"tf", text:"Zakonska, sodna in izvršilna oblast so tri veje oblasti v RS.", correct:true },
   { id:"a7", type:"tf", text:"Okvir za upravljanje in kontrolo IT je namenjen samo notranjim uporabnikom.", correct:false },
   { id:"a8", type:"tf", text:"Za aplikativne kontrole je v celoti zadolžen IT.", correct:false },
-  { id:"a9", type:"tf", text:"Izdajatelji kvalificiranih digitalnih potrdil so del infrastrukture zasebnih ključev.", correct:false }, // pravilno: PKI (javnih ključev)
+  { id:"a9", type:"tf", text:"Izdajatelji kvalificiranih digitalnih potrdil so del infrastrukture zasebnih ključev.", correct:false },
   { id:"a10", type:"tf", text:"Javno upravo RS sestavljajo sistemi in institucije, ki zagotavljajo oblast.", correct:false },
   { id:"a11", type:"tf", text:"Po eIDAS sta elektronski podpis in napreden elektronski podpis različna pojma.", correct:true },
   { id:"a12", type:"tf", text:"GDPR se ne uporablja za namene uporabe osebnih podatkov za osebne potrebe.", correct:true },
@@ -240,7 +274,7 @@ const QUESTION_BANK = [
     id:"b8", type:"multi",
     text:"8. Kdo lahko predlaga zakone v RS?",
     options:["Poslanci","Državni svet","Vlada","Minister in 5000 volivcev"],
-    correct:[0,1,2] // d NE
+    correct:[0,1,2]
   },
   {
     id:"b9", type:"single",
@@ -280,7 +314,7 @@ const QUESTION_BANK = [
   },
   {
     id:"b15", type:"single",
-    text:"15. IT je v produkcijo pravočasno predal programsko opremo in porabil predvidena sredstva, vendar rešitev ne deluje skladno z zahtevami uporabnikov. Kateri IT kriterij po COBIT ni bil dosežen?",
+    text:"15. IT je v produkcijo pravočasno predal programsko opremo in za izdelavo porabil predvidena sredstva, vendar rešitev ne deluje skladno z zahtevami uporabnikov. Kateri IT kriterij po COBIT ni bil dosežen?",
     options:["Uspešnost"],
     correct:0
   },
@@ -298,7 +332,7 @@ const QUESTION_BANK = [
   },
   {
     id:"b18", type:"multi",
-    text:"18. Prodaja v elektronski trgovini pomeni tudi sklenitev pogodbe. Kateri zakon ureja to vrsto pogodbe?",
+    text:"18. Prodaja v elektronski trgovini pomeni tudi sklenitev pogodbe. Kateri zakon ureja to vrsto pogodbe",
     options:["Zakon o varstvu potrošnikov","Zakon o pogodbenih odnosih","Zakon o elektronskem poslovanju na trgu","Zakon o elektronskih komunikacijah"],
     correct:[0,2]
   },
@@ -340,13 +374,13 @@ const QUESTION_BANK = [
   },
   {
     id:"b25", type:"single",
-    text:"25. Kako se imenuje evidenca, v kateri so podatki iz katalogov zbirk osebnih podatkov?",
+    text:"25. Kako se imenuje evidenca, v kateri so podatki iz katalogov zbirk osebnih podatkov",
     options:["Katalog zbirke osebnih podatkov","Register zbirk osebnih podatkov","Pravilnik o varovanju osebnih podatkov","Seznam zbirk osebnih podatkov"],
     correct:1
   },
   {
     id:"b26", type:"multi",
-    text:"26. Na kaj se osredotočajo procesi v domeni »Načrtujte in organizirajte«?",
+    text:"26. Na kaj se osredotočajo procesi v domeni »Načrtujete in organizirajte«?",
     options:["Uskladitev poslovne in IT strategije","Razumevanje in upravljanje tveganj IT","Optimizacijo stroškov","Merjenje delovanja IT"],
     correct:[0,1]
   },
@@ -360,17 +394,17 @@ const QUESTION_BANK = [
     id:"b28", type:"multi",
     text:"28. Ponudnik storitve lahko pošilja komercialna sporočila, ki so del storitev informacijske družbe, če:",
     options:[
-      "Prejemnik storitve vnaprej soglaša s pošiljanjem",
-      "Je komercialno sporočilo kot tako jasno razpoznavno",
-      "Je nedvoumno navedena fizična ali pravna oseba, v imenu katere je komercialno sporočilo poslano",
-      "So jasno in nedvoumno navedeni pogoji za sprejem posebnih ponudb, ki so povezane s popusti, premijami in darili, ki morajo biti kot taki nedvoumno označeni"
+      "Prejemnik storitve vnaprej soglaša s pošiljanjem,",
+      "Je komercialno sporočilo kot tako jasno razpoznavno,",
+      "Je nedvoumno navedena fizična ali pravna oseba, v imenu katere je komercialno sporočilo poslano,",
+      "So jasno in nedvoumno navedeni pogoji za sprejem posebnih ponudb, ki so povezane s popusti, premijami in darili, ki morajo biti kot taki nedvoumno označeni."
     ],
     correct:[0,1,2,3]
   },
   {
     id:"b29", type:"single",
     text:"29. Kaj se določa z Zakonom o varstvu osebnih podatkov?",
-    options:["… nezakoniti in neupravičeni posegi …"],
+    options:["A) … nezakoniti in neupravičeni posegi …"],
     correct:0
   },
   {
@@ -575,33 +609,6 @@ function calcQuestionScore(q) {
   return { score: 0, max: 1, detail: { answered:false } };
 }
 
-function formatUserAnswer(q) {
-  const ans = state.answers.get(q.id);
-
-  if (q.type === "tf") {
-    if (ans === null) return "Brez odgovora";
-    return ans ? "Da" : "Ne";
-  }
-  if (q.type === "single") {
-    if (ans === null) return "Brez odgovora";
-    return q.options[ans] ?? "Brez odgovora";
-  }
-  if (q.type === "multi") {
-    const set = ans;
-    if (!set || set.size === 0) return "Brez odgovora";
-    const parts = Array.from(set).sort((a,b)=>a-b).map(i => q.options[i]);
-    return parts.join("; ");
-  }
-  return "Brez odgovora";
-}
-
-function formatCorrectAnswer(q) {
-  if (q.type === "tf") return q.correct ? "Da" : "Ne";
-  if (q.type === "single") return q.options[q.correct];
-  if (q.type === "multi") return q.correct.map(i => q.options[i]).join("; ");
-  return "";
-}
-
 function submitQuiz() {
   const perQ = state.picked.map(q => {
     const r = calcQuestionScore(q);
@@ -621,41 +628,79 @@ function submitQuiz() {
 
 function renderResult() {
   const r = state.lastResult;
+
+  // --- score line like screenshot ---
   const totalRounded = Math.round(r.total * 100) / 100;
   const pctRounded = Math.round(r.pct * 10) / 10;
+  el("scoreLine").textContent = `Rezultat: ${totalRounded} / ${r.max} (${pctRounded}%)`;
 
-  el("scoreLine").textContent = `Dosežene točke: ${totalRounded} / ${r.max} (${pctRounded}%).`;
+  // --- aggregate counts (checkbox-style counts) ---
+  let correctChosen = 0;
+  let wrongChosen = 0;
+  let missingCorrect = 0;
 
+  let questionsWithLoss = 0;
+  r.perQ.forEach((x) => {
+    if (x.score < 1) questionsWithLoss++;
+
+    const q = x.q;
+    if (q.type !== "multi") return;
+
+    const selected = state.answers.get(q.id) || new Set();
+    const correctSet = new Set(q.correct);
+
+    for (const i of selected) {
+      if (correctSet.has(i)) correctChosen++;
+      else wrongChosen++;
+    }
+    for (const i of correctSet) {
+      if (!selected.has(i)) missingCorrect++;
+    }
+  });
+
+  // --- badges row ---
+  const badges = el("summaryBadges");
+  badges.innerHTML = "";
+
+  const badge = (cls, icon, label, value) => {
+    const div = document.createElement("div");
+    div.className = `badge ${cls}`;
+    div.innerHTML = `<span class="dot">${icon}</span> <span>${label}: <b>${value}</b></span>`;
+    return div;
+  };
+
+  badges.appendChild(badge("ok", "✅", "pravilno izbranih", correctChosen));
+  badges.appendChild(badge("bad", "❌", "napačno izbranih", wrongChosen));
+  badges.appendChild(badge("warn", "⚠️", "manjkajočih pravilnih", missingCorrect));
+  badges.appendChild(badge("neutral", "📝", "Vprašanja z izgubo točk", questionsWithLoss));
+
+  // --- error list like screenshot (#N text ..... score) ---
   const review = el("review");
   review.innerHTML = "";
 
-  const wrong = r.perQ.filter(x => x.score < x.max);
+  const wrong = r.perQ
+    .map((x, idx) => ({...x, idx}))
+    .filter(x => x.score < x.max);
+
   if (wrong.length === 0) {
     const div = document.createElement("div");
-    div.className = "review-item";
-    div.innerHTML = `<div class="good">Brez napak.</div>`;
+    div.className = "error-row";
+    div.innerHTML = `<div class="error-left"><b>Brez napak.</b></div><div class="error-score">1.00/1.00</div>`;
     review.appendChild(div);
     return;
   }
 
-  wrong.forEach((x, idx) => {
+  wrong.forEach((x) => {
     const q = x.q;
     const div = document.createElement("div");
-    div.className = "review-item";
+    div.className = "error-row";
 
-    const userAns = formatUserAnswer(q);
-    const corr = formatCorrectAnswer(q);
-
-    const scoreInfo = (q.type === "multi")
-      ? `Točke: ${Math.round(x.score * 100) / 100} / 1 (pravilno označeno: ${x.detail.correctSelected}, napačno označeno: ${x.detail.wrongSelected})`
-      : `Točke: ${x.score} / 1`;
+    const scoreStr = `${(Math.round(x.score * 100) / 100).toFixed(2)}/1.00`;
+    const leftText = `#${x.idx + 1} ${q.text}`;
 
     div.innerHTML = `
-      <div class="bad">Napaka ${idx + 1}</div>
-      <div class="small"><strong>Vprašanje:</strong> ${q.text}</div>
-      <div class="small"><strong>Tvoj odgovor:</strong> ${userAns}</div>
-      <div class="small"><strong>Pravilno:</strong> ${corr}</div>
-      <div class="small">${scoreInfo}</div>
+      <div class="error-left"><b>${leftText}</b></div>
+      <div class="error-score">${scoreStr}</div>
     `;
     review.appendChild(div);
   });
