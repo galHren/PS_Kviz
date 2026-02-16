@@ -164,10 +164,14 @@
 
 <script>
 /*
-  BAZA VPRAŠANJ: vključuje
-  a) vse trditve (Da/Ne) iz tvoje liste
-  b) vsa vprašanja 1–30 iz tvoje liste (radio/checkbox)
+  Popravki v tej verziji:
+  - Odpravljena syntax napaka: manjkajoča vejica po b30 objektu
+  - Odstranjene podvojene "new1/new2" (ker so enaki b31/b32) + popravljeni correct indeksi
+  - Dodana manjkajoča vprašanja iz screenshotov (COBIT cilji, zainteresirane skupine, COBIT kriterij, ipd.)
+  - Popravljena očitna napaka: pravilni odgovori za "računovodski servis..." so [0,1,2] (ne [1,2])
+  - Vsa nova vprašanja imajo unikatne id-je
 */
+
 const QUESTION_BANK = [
   // ========== a) Naloga (Da/Ne) ==========
   { id:"a1", type:"tf", text:"Varen elektronski podpis skladen z ZEISZ praviloma izdelamo z uporabo simetrične kriptografije.", correct:false },
@@ -430,16 +434,340 @@ const QUESTION_BANK = [
   {
     id:"b29", type:"single",
     text:"29. Kaj se določa z Zakonom o varstvu osebnih podatkov?",
-    options:["A) … nezakoniti in neupravičeni posegi …"],
+    options:["Določajo se pravice, obveznosti, načela in ukrepi, s katerimi se preprečujejo neustavni, nezakoniti in neupravičeni posegi v zasebnost in dostojanstvo posameznika."],
     correct:0
   },
   {
     id:"b30", type:"multi",
     text:"30. Katera so osnovna načela glede neposrednega trženja oz. pošiljanja komercialnih sporočil?",
-    options:["Nedvoumno jasno je navedena fizična ali pravna oseba, v imenu katere je bilo komercialno sporočilo poslano","Potrebno je soglasje naslovnika"],
+    options:[
+      "Nedvoumno jasno je navedena fizična ali pravna oseba, v imenu katere je bilo komercialno sporočilo poslano",
+      "Potrebno je soglasje naslovnika"
+    ],
     correct:[0,1]
+  },
+
+  // ========== NOVO iz screenshotov ==========
+  {
+    id:"b31", type:"multi",
+    text:"V katerih primerih računovodski servis ni več obdelovalec temveč postane upravljavec osebnih podatkov?",
+    options:[
+      "Kadar obdeluje podatke izven pogodbe, sklenjene z upravljalcem",
+      "Če sam zaposluje",
+      "Če sam izbira in obdeluje osebne podatke",
+      "Vedno"
+    ],
+    correct:[0,1,2]
+  },
+  {
+    id:"b32", type:"single",
+    text:"Na katere vidike upravljanja informacijskega sistema moramo biti še posebej pozorni, če zbiramo privolitve za obdelavo osebnih podatkov?",
+    options:[
+      "Upravljanje sprememb",
+      "Upravljanje konfiguracij",
+      "Revizijske sledi o privolitvi",
+      "Uporabo COBIT 4.1"
+    ],
+    correct:2
+  },
+  {
+    id:"b33", type:"multi",
+    text:"Kadar upravljavec osebnih podatkov določi DPO:",
+    options:[
+      "Javno objavi kontaktne podatke in jih sporoči Informacijskemu pooblaščencu",
+      "Izbranemu delavcu poviša plačo",
+      "Določi politiko delovanja DPO",
+      "Obvezno javno objavi ime in priimek DPO"
+    ],
+    correct:[0,3]
+  },
+  {
+    id:"b34", type:"multi",
+    text:"Katera so osnovna načela glede neposrednega trženja oz. pošiljanja komercialnih sporočil?",
+    options:[
+      "Upoštevanje Zakona o varstvu osebnih podatkov in GDPR",
+      "Nedvoumno jasno je navedena fizična ali pravna oseba, v imenu katere je bilo komercialno sporočilo poslano",
+      "Ko naslovnik enkrat sprejme nadaljnjo uporabo, tega ne more več preklicati",
+      "Potrebno je soglasje naslovnika"
+    ],
+    correct:[0,1,3]
+  },
+  {
+    id:"b35", type:"single",
+    text:"Ustavno sodišče: mandat ustavnih sodnikov je 6 let.",
+    options:["Da","Ne"],
+    correct:1 // Ne
+  },
+  {
+    id:"b36", type:"single",
+    text:"Višja sodišča v RS:",
+    options:["So le v Ljubljani","So v Ljubljani in Mariboru","Skrbijo za enotno sodno prakso","So predvsem pritožbena sodišča"],
+    correct:3
+  },
+  {
+    id:"b37", type:"multi",
+    text:"Kdo so lahko upravljavci osebnih podatkov:",
+    options:["Pravne osebe","Fizične osebe","Javni organi","Mešane osebe"],
+    correct:[0,1,2]
+  },
+  {
+    id:"b38", type:"multi",
+    text:"Kateri od naštetih so bistveni podatki za dokazovanje dane privolitve?",
+    options:[
+      "Kako je bila privolitev pridobljena",
+      "Kdaj je bila privolitev pridobljena",
+      "IP naslov strežnika na katerem je bila zbrana privolitev",
+      "Vsebina informacij, ki so bile zbrane posamezniku pri dajanju privolitve"
+    ],
+    correct:[0,1,3]
+  },
+  {
+    id:"b39", type:"multi",
+    text:"Kateri od naštetih so mehanizmi načela odgovornosti po GDPR?",
+    options:[
+      "Vgrajeno in privzeto varstvo osebnih podatkov",
+      "Evidence dejavnosti obdelave",
+      "Ocena učinka",
+      "Informacijska varnost"
+    ],
+    correct:[0,1,2]
+  },
+  {
+    id:"b40", type:"single",
+    text:"IT je v produkcijo pravočasno predal programsko opremo in za izdelavo porabil predvidena sredstva, vendar rešitev ne deluje skladno z zahtevami uporabnikov. Kateri IT kriterij po COBIT ni bil dosežen?",
+    options:["Razpoložljivost","Učinkovitost","Zanesljivost","Skladnost","Uspešnost","Celovitost","Zaupnost"],
+    correct:4 // Uspešnost
+  },
+  {
+    id:"b41", type:"single",
+    text:"COBIT deli upravljanje na naslednja ciljna področja upravljanja:",
+    options:["Strateško usklajevanje","Taktično usklajevanje","Operativno usklajevanje","Spremlejvalno usklajevanje"],
+    correct:0
+  },
+  {
+    id:"b42", type:"multi",
+    text:"Katere so pravila uporabe zakonite podlage za obdelavo osebnih podatkov po GDPR?",
+    options:[
+      "Zakonito podlago lahko upravljalec med obdelavo kadarkoli zamenja",
+      "Osebne podatke je mogoče obdelovati na podlagi več zakonitih podlag hkrati",
+      "Zakonito podlago lahko upravljalec določi šele po začetku obdelave osebnih podatkov",
+      "Za vsako zakonito podlago mora upravljalec zahtevati ločeno privolitev posameznika"
+    ],
+    correct:[0,1]
+  },
+  {
+    id:"b43", type:"multi",
+    text:"Kdaj mora upravljavec ponovno pridobiti privolitev posameznika?",
+    options:[
+      "Vsakih šest mesecev",
+      "Če se spremeni namen obdelave osebnih podatkov",
+      "Če se spremenijo osebni podatki posameznika",
+      "Če želi posameznik izbrisati svoje osebne podatke"
+    ],
+    correct:[1,3]
+  },
+  {
+    id:"b44", type:"single",
+    text:"Katera/-e niso veja oblasti v Republiki Sloveniji?",
+    options:["Zakonodajna oblast","Sodna oblast","Izvršilna oblast","Davčna oblast"],
+    correct:3
+  },
+  {
+    id:"b45", type:"multi",
+    text:"Katere so osnovne komponente PKI?",
+    options:["DIR","Elektronski podpis","CA","RSA"],
+    correct:[0,2]
+  },
+  {
+    id:"b46", type:"multi",
+    text:"Kdaj mora upravljavec obvezno pridobiti izrecno privolitev posameznika?",
+    options:[
+      "V primeru visokega tveganja za posameznika pri obdelavi osebnih podatkov",
+      "Za obdelavo posebnih vrst osebnih podatkov na podlagi privolitve",
+      "Za prenos podatkov v tretje države, če ti niso ustrezno zaščiteni",
+      "Za pošiljanje tržnih sporočil (SPAM)"
+    ],
+    correct:[1,2]
+  },
+  {
+    id:"b47", type:"single",
+    text:"Ali je za začetek opravljanja in izvajanje dejavnosti storitev informacijske družbe treba pridobiti predhodno dovoljenje?",
+    options:[
+      "Da, od Agencije za elektronsko poslovanje",
+      "Da, od Ministrstva za gospodarstvo",
+      "Da, od Ministrstva za visoko šolstvo, znanost in tehnologijo",
+      "Dovoljenje ni potrebno"
+    ],
+    correct:3
+  },
+  {
+    id:"b48", type:"multi",
+    text:"Katera od naslednjih so sredstva za komuniciranje na daljavo?",
+    options:["Pisemske pošiljke","Telefonski pogovori","Katalogi","Televizijska prodaja"],
+    correct:[0,1,2,3]
+  },
+  {
+    id:"b49", type:"single",
+    text:"Ombudsman je drugo ime za…",
+    options:["Notarja","Varuha človekovih pravic","Državnega tožilca","Odvetnika"],
+    correct:1
+  },
+  {
+    id:"b50", type:"multi",
+    text:"Kaj mora upravljavec upoštevati, kadar se besedila za privolitev nanaša tudi na druge zadeve (npr. vsebuje tudi pravila odstopa od pogodbe)?",
+    options:[
+      "Privolitev se mora jasno razlikovati od drugih vsebin",
+      "Privolitev mora biti zapisana v jasnem jeziku",
+      "Del privolitve, ki niso skladni z predpisi, ne bodo zavezujoči",
+      "Privolitve mora natisti"
+    ],
+    correct:[0,1]
+  },
+  {
+    id:"b51", type:"multi",
+    text:"Zakon o elektronskih komunikacijah določa:",
+    options:[
+      "Pravila uporabe piškotkov na spletnih straneh",
+      "Neželeno komunikacijo (SPAM)",
+      "Obvezno vsebino piškotkov",
+      "Pravila sklepanja pogodb v elektronski obliki"
+    ],
+    correct:[0,1]
+  },
+  {
+    id:"b52", type:"single",
+    text:"Kaj se določa z Zakonom o varstvu osebnih podatkov?",
+    options:[
+      "Določajo se pravice, obveznosti, načela in ukrepi, s katerimi se preprečujejo neustavni, nezakoniti in neupravičeni posegi v zasebnost in dostojanstvo posameznika."
+    ],
+    correct:0
+  },
+  {
+    id:"b53", type:"multi",
+    text:"Kadar upravljavec osebnih zbira osebne podatke od posameznika, mu mora zagotoviti naslednje informacije:",
+    options:[
+      "Namen obdelave osebnih podatkov",
+      "Rok hrambe osebnih podatkov",
+      "Pravice posameznika v zvezi z obdelavo osebnih podatkov",
+      "Ime aplikacije, s katero obdeluje osebne podatke"
+    ],
+    correct:[0,1,2]
+  },
+  {
+    id:"b54", type:"multi",
+    text:"Katera sredstva od naštetih so po COBIT bistvena za uspešnost procesov?",
+    options:["Informacije","Kazalniki","Zrelostni model","Infrastruktura"],
+    correct:[0,3]
+  },
+  {
+    id:"b55", type:"multi",
+    text:"Pogodba med upravljalcem in obdelovalcem osebnih podatkov mora vsebovati vsaj:",
+    options:[
+      "Naravo in namen obdelave",
+      "Imena in priimke posameznikov, na katere se obdelava nanaša",
+      "Obveznosti in pravice upravljalca",
+      "Dogovor o pod-obdelovalcih"
+    ],
+    correct:[0,2]
+  },
+  {
+    id:"b56", type:"multi",
+    text:"Kateri zakon/i urejajo področje nezaželene elektronske pošte (SPAM)?",
+    options:[
+      "Zakon o varstvu osebnih podatkov",
+      "Zakon o varstvu elektronske pošte",
+      "Zakon o elektronskem poslovanju na trgu",
+      "Zakon o elektronskih komunikacijah"
+    ],
+    correct:[2,3]
+  },
+  {
+    id:"b57", type:"multi",
+    text:"Dostop do katerih podatkov mora zagotoviti ponudnik storitev informacijske družbe prejemnikom storitev?",
+    options:[
+      "Davčno številko",
+      "Veljaven elektronski naslov za hitro in učinkovito komuniciranje",
+      "Podatke o podjetju in sedežu ponudnika storitev",
+      "EMŠO"
+    ],
+    correct:[1,2]
+  },
+  {
+    id:"b58", type:"multi",
+    text:"Kdo lahko predlaga zakone v RS?",
+    options:["Državni svet","Vlada","Minister","Poslanci"],
+    correct:[0,1,3]
+  },
+  {
+    id:"b59", type:"multi",
+    text:"Katere pravice ima posameznik, kadar poda privolitev?",
+    options:[
+      "Privolitev lahko kadarkoli prekliče",
+      "Privolitev je enako enostavno dati in preklicati",
+      "Preklic privolitve lahko uveljavlja za nazaj",
+      "Privolitve ne more preklicati do izteka pogodbe"
+    ],
+    correct:[0,1]
+  },
+  {
+    id:"b60", type:"multi",
+    text:"COBIT podpira upravljanje IT tako, da določa upravljavski okvir, zaradi katerega je:",
+    options:[
+      "Veljaven elektronski podpis",
+      "IT usklajen s poslovanjem",
+      "Se sredstva IT odgovorno uporabljajo",
+      "Zagotovljena skladnost s predpisi na področju varstva osebnih podatkov"
+    ],
+    correct:[1,2]
+  },
+  {
+    id:"b61", type:"multi",
+    text:"Sredstvo za varno elektronsko podpisovanje mora zagotavljati:",
+    options:[
+      "Asimetrični šifrirni ključ",
+      "Jasno označen psevdonim",
+      "Zanesljivo varovanje pred nepooblaščenim dostopom",
+      "Edinstvenost podatkov za elektronsko podpisovanje"
+    ],
+    correct:[2,3]
+  },
+  {
+    id:"b62", type:"single",
+    text:"Kdaj se lahko obdelujejo osebni podatki v javnem sektorju?",
+    options:["Kadar tako odloči sodišče","Ob zaključku vsakega fiskalnega leta","Kadar to zahteva policija","Kadar to določa zakon"],
+    correct:3
+  },
+  {
+    id:"b63", type:"single",
+    text:"Katerim zainteresiranim skupinam je namenjen COBIT?",
+    options:[
+      "Zainteresiranim znotraj podjetja",
+      "Tistim, ki skrbijo za skladnost",
+      "Tistim, ki izvajajo IT storitve",
+      "Tistim, ki določajo zahteve IT"
+    ],
+    correct:[1,2,3] // multi? Na screenshotu je 3/4 pravilno, označene 3 skupine. Pustimo kot multi spodaj (b64) in to b63 ne rabimo.
+  },
+
+  // popravljena varianta istega vprašanja kot multi:
+  {
+    id:"b64", type:"multi",
+    text:"Katerim zainteresiranim skupinam je namenjen COBIT?",
+    options:[
+      "Zainteresiranim znotraj podjetja",
+      "Tistim, ki skrbijo za skladnost",
+      "Tistim, ki izvajajo IT storitve",
+      "Tistim, ki določajo zahteve IT"
+    ],
+    correct:[1,2,3]
   }
 ];
+
+// odstranimo b63 single, ker ima correct kot array -> neveljavno za single
+// (če želiš obdržati tudi "znotraj podjetja" kot pravilno, samo povej in spremenim pravilne odgovore)
+for (let i = QUESTION_BANK.length - 1; i >= 0; i--) {
+  if (QUESTION_BANK[i].id === "b63") QUESTION_BANK.splice(i, 1);
+}
 
 const PICK_COUNT = 20;
 
@@ -659,8 +987,7 @@ function getUserAnswerIndices(q) {
   if (q.type === "single") return (ans === null ? [] : [ans]);
   if (q.type === "tf") {
     if (ans === null) return [];
-    // map Da/Ne to indices 0/1
-    return [ans ? 0 : 1];
+    return [ans ? 0 : 1]; // Da/Ne
   }
   return [];
 }
@@ -678,8 +1005,6 @@ function getOptionLabel(q, idx) {
 }
 
 function renderOptionDiffList(q) {
-  // For multi: show each option with marker (✓ correct chosen, ✗ wrong chosen, ! missing correct)
-  // For single/tf: show chosen and correct lines + markers
   const userIdx = new Set(getUserAnswerIndices(q));
   const corrIdx = new Set(getCorrectAnswerIndices(q));
 
@@ -697,13 +1022,11 @@ function renderOptionDiffList(q) {
     return `<ul class="optlist">${items.join("")}</ul>`;
   }
 
-  // single or tf:
   const user = getUserAnswerIndices(q);
   const corr = getCorrectAnswerIndices(q);
 
   const userText = user.length ? escapeHtml(getOptionLabel(q, user[0])) : "Brez odgovora";
   const corrText = escapeHtml(getOptionLabel(q, corr[0]));
-
   const ok = (user.length && user[0] === corr[0]);
 
   return `
@@ -726,20 +1049,17 @@ function escapeHtml(str) {
 function renderResult() {
   const r = state.lastResult;
 
-  // --- score line ---
   const totalRounded = Math.round(r.total * 100) / 100;
   const pctRounded = Math.round(r.pct * 10) / 10;
   el("scoreLine").textContent = `Rezultat: ${totalRounded} / ${r.max} (${pctRounded}%)`;
 
-  // --- aggregate counts (checkbox-style counts; same as before) ---
   let correctChosen = 0;
   let wrongChosen = 0;
   let missingCorrect = 0;
-
   let questionsWithLoss = 0;
+
   r.perQ.forEach((x) => {
     if (x.score < 1) questionsWithLoss++;
-
     const q = x.q;
     if (q.type !== "multi") return;
 
@@ -755,7 +1075,6 @@ function renderResult() {
     }
   });
 
-  // --- badges ---
   const badges = el("summaryBadges");
   badges.innerHTML = "";
 
@@ -771,13 +1090,10 @@ function renderResult() {
   badges.appendChild(badge("warn", "⚠️", "manjkajočih pravilnih", missingCorrect));
   badges.appendChild(badge("neutral", "📝", "Vprašanja z izgubo točk", questionsWithLoss));
 
-  // --- errors list with details (what was right/wrong) ---
   const review = el("review");
   review.innerHTML = "";
 
-  const wrong = r.perQ
-    .map((x, idx) => ({...x, idx}))
-    .filter(x => x.score < x.max);
+  const wrong = r.perQ.map((x, idx) => ({...x, idx})).filter(x => x.score < x.max);
 
   if (wrong.length === 0) {
     const div = document.createElement("div");
@@ -797,7 +1113,6 @@ function renderResult() {
     const scoreStr = `${(Math.round(x.score * 100) / 100).toFixed(2)}/1.00`;
     const leftText = `#${x.idx + 1} ${q.text}`;
 
-    // header row (text + score)
     const header = document.createElement("div");
     header.className = "row";
     header.style.justifyContent = "space-between";
@@ -806,11 +1121,9 @@ function renderResult() {
       <div class="error-score">${scoreStr}</div>
     `;
 
-    // details
     const details = document.createElement("div");
     details.className = "error-details";
 
-    // Legend chips for multi
     let legend = "";
     if (q.type === "multi") {
       legend = `
