@@ -1,45 +1,11 @@
-<!doctype html>
-<html lang="sl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XML / REST / JSON Kviz</title>
-
-<style>
-body { font-family: system-ui; background:#0f172a; color:white; margin:0; }
-.wrap { max-width:900px; margin:auto; padding:30px; }
-.card { background:#1e293b; padding:25px; border-radius:12px; }
-button { padding:10px 18px; margin-top:15px; border-radius:8px; border:none; cursor:pointer; }
-.primary { background:#3b82f6; color:white; }
-.restart { background:#10b981; color:white; margin-left:10px; }
-.result { background:#111827; padding:20px; border-radius:10px; margin-top:20px; }
-.option { margin:6px 0; }
-.correct { color:#22c55e; }
-.wrong { color:#ef4444; }
-hr { border:1px solid #334155; }
-</style>
-</head>
-<body>
-
-<div class="wrap">
-<div class="card" id="quiz"></div>
-</div>
-
 <script>
 
-/* =========================
-  VSA VPRAŠANJA (skrajšano tu – obdrži tvoja obstoječa)
-========================= */
-
-const questions = window.questions || [
-/* TU OSTANE TVOJ SEZNAM VPRAŠANJ BREZ SPREMEMB */
+const questions = [ 
+/* TUKAJ OSTANE TVOJ CEL SEZNAM VPRAŠANJ */
 ];
 
-/* ========================= */
-
 let current = 0;
-let score = 0;
-let review = [];
+let answers = new Array(questions.length).fill(null);
 
 function render(){
 const q = questions[current];
@@ -52,8 +18,12 @@ div.innerHTML = `
 
 if(q.type==="boolean"){
 div.innerHTML += `
-<div class="option"><input type="radio" name="ans" value="true"> DA</div>
-<div class="option"><input type="radio" name="ans" value="false"> NE</div>`;
+<div class="option">
+<input type="radio" name="ans" value="true"> DA
+</div>
+<div class="option">
+<input type="radio" name="ans" value="false"> NE
+</div>`;
 }
 else{
 q.options.forEach((opt,i)=>{
@@ -64,77 +34,113 @@ div.innerHTML += `
 });
 }
 
-div.innerHTML += `<button class="primary" onclick="next()">Naprej</button>`;
+div.innerHTML += `
+<button onclick="prev()">Nazaj</button>
+<button class="primary" onclick="next()">Naprej</button>
+`;
+
+restoreAnswer();
 }
 
-function next(){
+function restoreAnswer(){
+const saved = answers[current];
+if(saved === null) return;
+
 const q = questions[current];
-let correct = false;
-let selectedAnswers = [];
+
+if(q.type==="boolean"){
+document.querySelector(`input[value="${saved}"]`)?.click();
+}
+else{
+saved.forEach(i=>{
+document.querySelector(`input[value="${i}"]`)?.click();
+});
+}
+}
+
+function saveAnswer(){
+const q = questions[current];
 
 if(q.type==="boolean"){
 const s = document.querySelector('input[name="ans"]:checked');
-if(s){
-selectedAnswers = [(s.value==="true")];
-if((s.value==="true") === q.answer) correct = true;
-}
+answers[current] = s ? s.value : null;
 }
 else{
 const checked = [...document.querySelectorAll('input[type="checkbox"]:checked')]
-.map(c=>parseInt(c.value)).sort();
-
-selectedAnswers = checked;
-
-const correctAns = q.answer.slice().sort();
-if(JSON.stringify(checked) === JSON.stringify(correctAns)) correct = true;
+.map(c=>parseInt(c.value));
+answers[current] = checked;
+}
 }
 
-if(correct) score++;
-
-review.push({
-question: q.question,
-type: q.type,
-options: q.options,
-correctAnswer: q.answer,
-userAnswer: selectedAnswers,
-isCorrect: correct
-});
-
+function next(){
+saveAnswer();
+if(current < questions.length - 1){
 current++;
+render();
+}
+else{
+showResult();
+}
+}
 
-if(current < questions.length) render();
-else showResult();
+function prev(){
+saveAnswer();
+if(current > 0){
+current--;
+render();
+}
 }
 
 function showResult(){
+saveAnswer();
+
+let score = 0;
 const div = document.getElementById("quiz");
 
 div.innerHTML = `
 <h2>Konec kviza</h2>
-<p><strong>Rezultat: ${score} / ${questions.length}</strong></p>
-<button class="restart" onclick="restartQuiz()">Ponovno reševanje</button>
-<div class="result">
-<h3>Pregled odgovorov:</h3>
+<button onclick="restartQuiz()" class="restart">Ponovno reševanje</button>
+<div class="result"><h3>Pregled odgovorov:</h3>
 `;
 
-review.forEach(r=>{
-div.innerHTML += `<p><b>${r.question}</b><br>`;
+questions.forEach((q,i)=>{
 
-if(r.type==="boolean"){
-const correctText = r.correctAnswer ? "DA" : "NE";
-const userText = r.userAnswer.length ? (r.userAnswer[0] ? "DA" : "NE") : "Ni odgovora";
+let correct = false;
+let userAnswer = answers[i];
+
+if(q.type==="boolean"){
+if(userAnswer !== null && (userAnswer==="true") === q.answer){
+correct = true;
+}
+}
+else{
+const user = (userAnswer || []).slice().sort();
+const correctAns = q.answer.slice().sort();
+if(JSON.stringify(user) === JSON.stringify(correctAns)){
+correct = true;
+}
+}
+
+if(correct) score++;
+
+div.innerHTML += `<p><b>${q.question}</b><br>`;
+
+if(q.type==="boolean"){
+const correctText = q.answer ? "DA" : "NE";
+const userText = userAnswer===null ? "Ni odgovora" :
+(userAnswer==="true" ? "DA":"NE");
 
 div.innerHTML += `
-Tvoj odgovor: <span class="${r.isCorrect ? 'correct':'wrong'}">${userText}</span><br>
-Pravilen odgovor: <span class="correct">${correctText}</span>
+Tvoj odgovor: <span class="${correct?'correct':'wrong'}">${userText}</span><br>
+Pravilni odgovor: <span class="correct">${correctText}</span>
 `;
 }
 else{
-const correctTexts = r.correctAnswer.map(i=>r.options[i]);
-const userTexts = r.userAnswer.map(i=>r.options[i]);
+const correctTexts = q.answer.map(i=>q.options[i]);
+const userTexts = (userAnswer||[]).map(i=>q.options[i]);
 
 div.innerHTML += `
-Tvoj odgovor: <span class="${r.isCorrect ? 'correct':'wrong'}">
+Tvoj odgovor: <span class="${correct?'correct':'wrong'}">
 ${userTexts.length ? userTexts.join(", ") : "Ni odgovora"}
 </span><br>
 Pravilni odgovori: <span class="correct">
@@ -146,18 +152,22 @@ ${correctTexts.join(", ")}
 div.innerHTML += `<hr>`;
 });
 
-div.innerHTML += `</div>`;
+div.innerHTML = `
+<h2>Rezultat: ${score} / ${questions.length}</h2>
+<button onclick="restartQuiz()" class="restart">Ponovno reševanje</button>
+<div class="result">
+<h3>Pregled odgovorov:</h3>
+${div.innerHTML}
+</div>
+`;
 }
 
 function restartQuiz(){
 current = 0;
-score = 0;
-review = [];
+answers = new Array(questions.length).fill(null);
 render();
 }
 
 render();
 
 </script>
-</body>
-</html>
