@@ -18,6 +18,31 @@ button { padding:10px 18px; margin-top:15px; border-radius:8px; border:none; cur
 .wrong { color:#ef4444; }
 hr { border:1px solid #334155; }
 small { color:#cbd5e1; }
+
+/* --- REVIEW UI (kot na tvoji sliki) --- */
+.panel { background:#0b1224; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px; }
+.row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.space { height:14px; }
+.pill { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; font-size:13px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); }
+.pill.good { border-color: rgba(34,197,94,.35); }
+.pill.bad { border-color: rgba(239,68,68,.35); }
+.pill.warn { border-color: rgba(245,158,11,.35); }
+.h2 { font-size:20px; margin:0 0 6px 0; }
+.muted { color:#cbd5e1; font-size:13px; }
+.qcard { background:#0b1224; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px; margin-top:14px; }
+.qhead { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.qtitle { font-weight:700; }
+.qscore { font-weight:700; }
+.bullets { margin:10px 0 0 0; padding-left:18px; }
+.bullets li { margin:6px 0; }
+.li-ok { color:#22c55e; }
+.li-bad { color:#ef4444; }
+.li-miss { color:#f59e0b; }
+.btnbar { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.btn { padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:white; cursor:pointer; }
+.btn.primary { background:#3b82f6; border-color: rgba(59,130,246,.35); }
+.btn.ghost { background:transparent; }
+.divider { height:1px; background:rgba(255,255,255,.08); margin:14px 0; }
 </style>
 </head>
 <body>
@@ -158,7 +183,6 @@ options:[
 answer:[3,4,5]
 },
 
-
 {
 type:"multi",
 question:"Značilnosti XmlDocument in XPathDocument:",
@@ -255,8 +279,6 @@ answer:[0]
 ];
 
 let current = 0;
-
-// shrani odgovore: boolean -> "true"/"false"/null, multi -> [index,...]
 let userAnswers = new Array(questions.length).fill(null);
 
 function render(){
@@ -336,58 +358,169 @@ function prev(){
   }
 }
 
-function evaluateQuestion(q, ans){
-  if(q.type === "boolean"){
-    if(ans === null) return false;
-    return ((ans === "true") === q.answer);
-  } else {
-    const user = (ans || []).slice().sort((a,b)=>a-b);
-    const corr = q.answer.slice().sort((a,b)=>a-b);
-    return JSON.stringify(user) === JSON.stringify(corr);
+/* ---------- REVIEW helperji ---------- */
+
+function multiStats(q, ans){
+  const correctSet = new Set(q.answer);
+  const userSet = new Set((ans || []));
+
+  let correctPicked = 0;
+  let wrongPicked = 0;
+  let missing = 0;
+
+  for(const u of userSet){
+    if(correctSet.has(u)) correctPicked++;
+    else wrongPicked++;
   }
+  for(const c of correctSet){
+    if(!userSet.has(c)) missing++;
+  }
+
+  const exact = (wrongPicked === 0 && missing === 0 && correctPicked === correctSet.size);
+
+  let points = 0;
+  if(exact) points = 1;
+  else if(wrongPicked === 0 && correctPicked > 0) points = 0.5;
+  else points = 0;
+
+  return { correctPicked, wrongPicked, missing, points };
 }
+
+function boolPoints(q, ans){
+  if(ans === null) return { points: 0, ok:false };
+  const ok = ((ans === "true") === q.answer);
+  return { points: ok ? 1 : 0, ok };
+}
+
+/* ---------- RESULT page ---------- */
 
 function showResult(){
   saveCurrent();
-
-  let score = 0;
   const div = document.getElementById("quiz");
 
-  let html = `<h2>Konec kviza</h2>`;
-  html += `<button class="restart" onclick="restartQuiz()">Ponovno reševanje</button>`;
-  html += `<div class="result"><h3>Pregled odgovorov</h3>`;
+  let totalPoints = 0;
+  let lostQuestions = 0;
+
+  let totalCorrectPicked = 0;
+  let totalWrongPicked = 0;
+  let totalMissing = 0;
+
+  const review = [];
 
   questions.forEach((q, i) => {
     const ans = userAnswers[i];
-    const ok = evaluateQuestion(q, ans);
-    if(ok) score++;
-
-    html += `<p><b>${i+1}. ${q.question}</b><br>`;
 
     if(q.type === "boolean"){
-      const userText = ans === null ? "Ni odgovora" : (ans === "true" ? "DA" : "NE");
-      const correctText = q.answer ? "DA" : "NE";
-
-      html += `Tvoj odgovor: <span class="${ok ? 'correct':'wrong'}">${userText}</span><br>`;
-      html += `Pravilni odgovor: <span class="correct">${correctText}</span>`;
+      const r = boolPoints(q, ans);
+      totalPoints += r.points;
+      if(r.points < 1) lostQuestions++;
+      review.push({ index:i, q, ans, points:r.points, max:1, kind:"boolean" });
     } else {
-      const userTexts = (ans || []).map(idx => q.options[idx]);
-      const correctTexts = q.answer.map(idx => q.options[idx]);
+      const s = multiStats(q, ans);
+      totalPoints += s.points;
+      if(s.points < 1) lostQuestions++;
 
-      html += `Tvoj odgovor: <span class="${ok ? 'correct':'wrong'}">${userTexts.length ? userTexts.join(", ") : "Ni odgovora"}</span><br>`;
-      html += `Pravilni odgovori: <span class="correct">${correctTexts.join(", ")}</span>`;
+      totalCorrectPicked += s.correctPicked;
+      totalWrongPicked += s.wrongPicked;
+      totalMissing += s.missing;
+
+      review.push({ index:i, q, ans, points:s.points, max:1, kind:"multi", stats:s });
     }
-
-    html += `</p><hr>`;
   });
 
-  html += `</div>`;
-  div.innerHTML = `<h2>Rezultat: ${score} / ${questions.length}</h2>` + html;
+  div.innerHTML = `
+    <div class="panel">
+      <div class="h2">Povzetek</div>
+      <div class="muted">Rezultat: ${totalPoints.toFixed(2)} / ${questions.length} (${((totalPoints/questions.length)*100).toFixed(1)}%)</div>
+      <div class="space"></div>
+      <div class="row">
+        <span class="pill good">✅ pravilno izbranih: <b>${totalCorrectPicked}</b></span>
+        <span class="pill bad">❌ napačno izbranih: <b>${totalWrongPicked}</b></span>
+        <span class="pill warn">⚠️ manjkajočih pravilnih: <b>${totalMissing}</b></span>
+        <span class="pill">🧾 Vprašanja z izgubo točk: <b>${lostQuestions}</b></span>
+      </div>
+
+      <div class="btnbar">
+        <button class="btn primary" onclick="restartQuiz()">Začni znova (vsa)</button>
+        <button class="btn" onclick="goBackToQuestions()">Nazaj na vprašanja</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="h2">Pregled napak</div>
+  `;
+
+  const mistakes = review.filter(r => r.points < 1);
+
+  if(mistakes.length === 0){
+    div.innerHTML += `<div class="qcard"><b>Ni napak</b> — vse je pravilno.</div>`;
+    return;
+  }
+
+  mistakes.forEach(r => {
+    const q = r.q;
+
+    div.innerHTML += `<div class="qcard">
+      <div class="qhead">
+        <div class="qtitle">#${r.index+1} ${q.question}</div>
+        <div class="qscore">${r.points.toFixed(2)}/${r.max.toFixed(2)}</div>
+      </div>
+    `;
+
+    if(r.kind === "boolean"){
+      const userText = r.ans === null ? "Brez odgovora" : (r.ans === "true" ? "DA" : "NE");
+      const corrText = q.answer ? "DA" : "NE";
+      const ok = (r.points === 1);
+
+      div.innerHTML += `
+        <div class="space"></div>
+        <span class="pill ${ok ? "good" : "bad"}">${ok ? "✅ Tvoj odgovor:" : "❌ Tvoj odgovor:"} <b>${userText}</b></span>
+        <span class="pill good">✅ Pravilno: <b>${corrText}</b></span>
+      </div>`;
+      return;
+    }
+
+    const userSet = new Set(r.ans || []);
+    const correctSet = new Set(q.answer);
+
+    div.innerHTML += `
+      <div class="space"></div>
+      <div class="row">
+        <span class="pill good">✅ pravilno označeno: <b>${r.stats.correctPicked}</b></span>
+        <span class="pill bad">❌ napačno označeno: <b>${r.stats.wrongPicked}</b></span>
+        <span class="pill warn">⚠️ manjkajoče pravilno: <b>${r.stats.missing}</b></span>
+      </div>
+
+      <ul class="bullets">
+    `;
+
+    q.options.forEach((opt, idx) => {
+      const isCorrect = correctSet.has(idx);
+      const picked = userSet.has(idx);
+
+      if(picked && isCorrect){
+        div.innerHTML += `<li class="li-ok">✅ ${opt}</li>`;
+      } else if(picked && !isCorrect){
+        div.innerHTML += `<li class="li-bad">❌ ${opt}</li>`;
+      } else if(!picked && isCorrect){
+        div.innerHTML += `<li class="li-miss">⚠️ ${opt}</li>`;
+      } else {
+        div.innerHTML += `<li>${opt}</li>`;
+      }
+    });
+
+    div.innerHTML += `</ul></div>`;
+  });
 }
 
 function restartQuiz(){
   current = 0;
   userAnswers = new Array(questions.length).fill(null);
+  render();
+}
+
+function goBackToQuestions(){
+  current = 0;
   render();
 }
 
