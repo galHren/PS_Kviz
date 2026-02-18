@@ -10,9 +10,9 @@ body { font-family: system-ui; background:#0f172a; color:white; margin:0; }
 .card { background:#1e293b; padding:25px; border-radius:12px; }
 button { padding:10px 18px; margin-top:15px; border-radius:8px; border:none; cursor:pointer; }
 .primary { background:#3b82f6; color:white; }
-.secondary { background:#475569; color:white; }
 .result { background:#111827; padding:20px; border-radius:10px; margin-top:20px; }
-.option { margin:8px 0; }
+.option { margin:6px 0; }
+hr { border:1px solid #334155; }
 </style>
 </head>
 <body>
@@ -22,116 +22,278 @@ button { padding:10px 18px; margin-top:15px; border-radius:8px; border:none; cur
 
 <script>
 const questions = [
-/* BOOLEAN PRIMER */
+
+/* =========================
+BOOLEAN (1–24)
+========================= */
+
+{type:"boolean",question:"Šifriranje XML dokumentov zagotavlja šifriranje podatkov od začetka do konca (end-to-end).",answer:false},
+{type:"boolean",question:"Vrednost atributa XML elementa mora biti zapisana v narekovajih.",answer:true},
+{type:"boolean",question:"Uporaba kategorije elementa ANY v DTD določa odprti del dokumenta, nad katerim nimamo nadzora.",answer:true},
+{type:"boolean",question:"XML spada v skupino označevalnih jezikov SGML.",answer:true},
+{type:"boolean",question:"V XML dokumentih je privzeto definirana in rezervirana oznaka imenskega prostora xmlns.",answer:true},
+{type:"boolean",question:"XPath je sintaksa za definiranje delov XML dokumenta.",answer:true},
+{type:"boolean",question:"Nekatere možnosti DTD besednjakov predstavljajo varnostno tveganje.",answer:true},
+{type:"boolean",question:"Ime vsakega sestavljenega tipa v XML besednjaku po dogovoru končamo z besedo 'Type'.",answer:true},
+{type:"boolean",question:"SOAP storitve po Richardsonovem modelu zrelosti spadajo v raven 0.",answer:true},
+{type:"boolean",question:"RDF je ogrodje za določanje povezav med razredi.",answer:true},
+{type:"boolean",question:"Pri poimenovanju XML elementov se izogibamo uporabi pike, dvopičja in znaka minus.",answer:false},
+{type:"boolean",question:"Ovit (Enveloped) XML elektronski podpis je povezan s podatki, ki jih podpisuje.",answer:true},
+{type:"boolean",question:"Pri uporabi REST storitev lahko dostopamo neposredno do informacijskega vira.",answer:true},
+{type:"boolean",question:"Ime XML besednjaka mora biti enako imenu imenskega prostora.",answer:false},
+{type:"boolean",question:"SOAP pomeni RESTful Transfer.",answer:false},
+{type:"boolean",question:"Pri uporabi Web API podatke praviloma prenašamo z uporabo ovojnice SOAP.",answer:false},
+{type:"boolean",question:"Za zapise s stalno dolžino je značilno, da je dolžina vsake vrstice lahko enaka.",answer:true},
+{type:"boolean",question:"Imenski prostor XML elementa mora biti URI.",answer:true},
+{type:"boolean",question:"XML dokumentov ne moremo prikazati samo z uporabo CSS.",answer:false},
+{type:"boolean",question:"Podpora za XSLT transformacijo je vgrajena v spletne brskalnike.",answer:true},
+{type:"boolean",question:"Znak + v DTD določa element z nič ali več otroki.",answer:false},
+{type:"boolean",question:"JSON-LD pomeni Long Data.",answer:false},
+{type:"boolean",question:"JSON-LD je poenostavljen zapis za kratko zapisovanje JSON podatkov.",answer:false},
+{type:"boolean",question:"Razred XmlWriter shrani celoten dokument v pomnilnik.",answer:false},
+
+/* =========================
+MULTI (25–43)
+========================= */
+
 {
-type:"boolean",
-question:"Vrednost atributa XML elementa mora biti zapisana v narekovajih.",
-answer:true
-},
-{
-type:"boolean",
-question:"SOAP pomeni RESTful Transfer.",
-answer:false
+type:"multi",
+question:"Označite razlike med XML atributi in XML elementi:",
+options:[
+"Z atributi praviloma zapišemo podatke namenjene stroju",
+"Atribute je možno enostavno razširiti",
+"Atributi lahko vsebujejo več vrednosti",
+"Atributi lahko vsebujejo drevesno strukturo",
+"Atributi so bolj berljivi kot elementi",
+"Podatki v atributih porabijo več prostora"
+],
+answer:[0]
 },
 
-/* MULTI PRIMER */
 {
 type:"multi",
 question:"Kateri so standardi za zapis XML besednjakov?",
-options:["DTD","XML Schema","JSON","XSLT"],
+options:["DTD","XML Schema","JSON-LD","JSON","XSLT","XSL-FO"],
 answer:[0,1]
 },
+
 {
 type:"multi",
-question:"Katere so značilnosti HTTP metode GET?",
+question:"Kateri podatkovni tipi niso določeni z XML Schema?",
+options:["char","null","color","float","date","boolean"],
+answer:[0,1,2]
+},
+
+{
+type:"multi",
+question:"Katero določilo združi zaporedje več presledkov v enega?",
+options:["collapse","replace","preserve","change","tabulize","whitespace"],
+answer:[0]
+},
+
+{
+type:"multi",
+question:"Kompleksni elementi v XML:",
+options:[
+"Lahko so prazni",
+"Vsebujejo samo druge elemente",
+"Vsebujejo samo podatke",
+"Vsebujejo druge elemente in podatke",
+"Vsebujejo besednjake",
+"Vsebujejo transformacije"
+],
+answer:[0,1,2,3]
+},
+
+{
+type:"multi",
+question:"Operator za izbiro starša vozlišča:",
+options:["..",".","::","/","@","//"],
+answer:[0]
+},
+
+{
+type:"multi",
+question:"Namen REST storitev:",
+options:[
+"Hrambo XML dokumentov",
+"Povezovanju aplikacijskih sistemov",
+"Prikazovanju XML podatkov",
+"Izdelavi HTML dokumentov",
+"Komunikaciji sistem–sistem",
+"Komunikaciji človek–stroj"
+],
+answer:[1,4]
+},
+
+{
+type:"multi",
+question:"XPath izrazi brez predikata:",
+options:[
+"/univerza/fakulteta[1]",
+"/univerza/fakulteta[last()]",
+"/univerza[@id]",
+"//id",
+"/univerza/fakulteta",
+"node()"
+],
+answer:[3,4,5]
+},
+
+{
+type:"multi",
+question:"Značilnosti XmlDocument in XPathDocument:",
+options:[
+"XmlDocument omogoča spreminjanje dokumenta",
+"XmlDocument omogoča uporabo XPath izrazov",
+"XPathDocument omogoča uporabo XPath izrazov"
+],
+answer:[0,1,2]
+},
+
+{
+type:"multi",
+question:"Tehnologije za izdelavo PDF iz XML:",
+options:["HTML","CSS","DTD","JavaScript","XSL-FO","XSL"],
+answer:[4,5]
+},
+
+{
+type:"multi",
+question:"SSL zagotavlja:",
+options:[
+"PKI",
+"Od začetka do konca",
+"Od konca do začetka",
+"Popolno šifriranje",
+"Strežniško šifriranje",
+"Od točke do točke"
+],
+answer:[5]
+},
+
+{
+type:"multi",
+question:"Raven REST po Richardsonu (več URI + GET):",
+options:["Raven 0","Raven 1","Raven 2","Raven 3"],
+answer:[1]
+},
+
+{
+type:"multi",
+question:"Značilnosti HTTP GET:",
 options:[
 "Zahteva ne rabi imeti telesa",
 "Zahteva mora imeti telo",
 "Se ne more uporabljati za prenos večje količine podatkov",
-"Preneseni podatki so vidni v dnevniku spletnega strežnika"
+"Preneseni podatki so vidni v dnevniku"
 ],
 answer:[0,2,3]
 },
 
-/* DODAJ VSA OSTALA VPRAŠANJA ENAKO KOT ZGORAJ */
+{
+type:"multi",
+question:"Razlika med posrednikom sporočil in vrsto:",
+options:[
+"Zna pretvarjati med formati",
+"Ne zagotavlja asinhrone komunikacije",
+"Ima podporo za zanesljivo dostavo"
+],
+answer:[0,2]
+},
+
+{
+type:"multi",
+question:"Standard za izdelavo SOAP storitev:",
+options:["WSDL","JavaScript","DOM","HTML","JSON","CSS"],
+answer:[0]
+},
+
+{
+type:"multi",
+question:"Pristopi za izdelavo JSON besednjakov:",
+options:[
+"Napišemo JSON besednjak",
+"Uporabimo knjižnico in generiramo iz modela",
+"Pretvorimo JSON dokument",
+"Napišemo XML besednjak",
+"Ustvarimo iz REST storitve",
+"GraphQL"
+],
+answer:[0,1]
+},
+
+{
+type:"multi",
+question:"Najhitrejša komunikacijska tehnologija:",
+options:["gRPC","REST","JSON-RPC","GraphQL","Thrift","SOAP"],
+answer:[0]
+}
+
 ];
 
-let current = 0;
-let score = 0;
-let wrong = [];
+let current=0;
+let score=0;
+let wrong=[];
 
-function renderQuestion(){
-const q = questions[current];
-const div = document.getElementById("quiz");
-div.innerHTML = `<h2>Vprašanje ${current+1} / ${questions.length}</h2>
-<p>${q.question}</p>`;
+function render(){
+const q=questions[current];
+const div=document.getElementById("quiz");
+div.innerHTML=`<h2>Vprašanje ${current+1} / ${questions.length}</h2><p>${q.question}</p>`;
 
 if(q.type==="boolean"){
-div.innerHTML += `
+div.innerHTML+=`
 <div class="option"><input type="radio" name="ans" value="true"> DA</div>
 <div class="option"><input type="radio" name="ans" value="false"> NE</div>`;
-}
-else if(q.type==="multi"){
+}else{
 q.options.forEach((opt,i)=>{
-div.innerHTML += `<div class="option">
-<input type="checkbox" value="${i}"> ${opt}
-</div>`;
+div.innerHTML+=`<div class="option"><input type="checkbox" value="${i}"> ${opt}</div>`;
 });
 }
 
-div.innerHTML += `<button class="primary" onclick="nextQuestion()">Naprej</button>`;
+div.innerHTML+=`<button class="primary" onclick="next()">Naprej</button>`;
 }
 
-function nextQuestion(){
-const q = questions[current];
-let correct = false;
+function next(){
+const q=questions[current];
+let correct=false;
 
 if(q.type==="boolean"){
-const selected = document.querySelector('input[name="ans"]:checked');
-if(selected && (selected.value==="true")===q.answer){
-correct=true;
-}
-}
-else{
-const checked = [...document.querySelectorAll('input[type="checkbox"]:checked')]
+const s=document.querySelector('input[name="ans"]:checked');
+if(s && (s.value==="true")===q.answer) correct=true;
+}else{
+const checked=[...document.querySelectorAll('input[type="checkbox"]:checked')]
 .map(c=>parseInt(c.value)).sort();
-const correctAns = q.answer.slice().sort();
-if(JSON.stringify(checked)===JSON.stringify(correctAns)){
-correct=true;
-}
+const correctAns=q.answer.slice().sort();
+if(JSON.stringify(checked)===JSON.stringify(correctAns)) correct=true;
 }
 
 if(correct) score++;
 else wrong.push(q);
 
 current++;
-
-if(current<questions.length){
-renderQuestion();
-}
+if(current<questions.length) render();
 else showResult();
 }
 
 function showResult(){
-const div = document.getElementById("quiz");
-div.innerHTML = `<h2>Konec kviza</h2>
-<p>Rezultat: ${score} / ${questions.length}</p>`;
-
+const div=document.getElementById("quiz");
+div.innerHTML=`<h2>Konec kviza</h2><p>Rezultat: ${score} / ${questions.length}</p>`;
 if(wrong.length>0){
-div.innerHTML += `<div class="result"><h3>Napačna vprašanja:</h3>`;
+div.innerHTML+=`<div class="result"><h3>Napačna vprašanja:</h3>`;
 wrong.forEach(w=>{
-div.innerHTML += `<p><b>${w.question}</b><br>
+div.innerHTML+=`<p><b>${w.question}</b><br>
 Pravilni odgovor: ${
 w.type==="boolean"
-? (w.answer ? "DA":"NE")
+? (w.answer?"DA":"NE")
 : w.answer.map(i=>w.options[i]).join(", ")
 }</p><hr>`;
 });
-div.innerHTML += `</div>`;
+div.innerHTML+=`</div>`;
 }
 }
 
-renderQuestion();
+render();
 </script>
 </body>
 </html>
