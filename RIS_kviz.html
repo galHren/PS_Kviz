@@ -81,6 +81,19 @@ question:"Kateri so standardi za zapis XML besednjakov?",
 options:["DTD","XML Schema","JSON-LD","JSON","XSLT","XSL-FO"],
 answer:[0,1]
 },
+{
+type:"multi",
+question:"Označite pravilno zapisane DTD definicije:",
+options:[
+"<!ELEMENT knjiga (naslov, avtor)*>",
+"<!ELEMENT knjiga (naslov,avtor)>",
+"<!ELEMENT knjiga (naslov|avtor|id)>",
+"<!ELEMENT knjiga [naslov,avtor]>",
+"<!ELEMENT knjiga (naslov,avtor|id)>",
+"<!ELEMENT knjiga (naslov,avtor)*>"
+],
+answer:[1,2]
+},
 
 {
 type:"multi",
@@ -145,11 +158,12 @@ options:[
 answer:[3,4,5]
 },
 
+
 {
 type:"multi",
 question:"Značilnosti XmlDocument in XPathDocument:",
 options:[
-"XmlDocument omogoča spreminjanje dokumenta",
+"XmlDocument omogoča spreminjanje vsebine dokumenta",
 "XmlDocument omogoča uporabo XPath izrazov",
 "XPathDocument omogoča uporabo XPath izrazov"
 ],
