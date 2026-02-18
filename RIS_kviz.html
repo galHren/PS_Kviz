@@ -11,15 +11,13 @@ body { font-family: system-ui; background:#0f172a; color:white; margin:0; }
 button { padding:10px 18px; margin-top:15px; border-radius:8px; border:none; cursor:pointer; }
 .primary { background:#3b82f6; color:white; }
 .secondary { background:#475569; color:white; margin-right:8px; }
-.restart { background:#10b981; color:white; margin-left:8px; }
-.result { background:#111827; padding:20px; border-radius:10px; margin-top:20px; }
-.option { margin:6px 0; }
+small { color:#cbd5e1; }
+
 .correct { color:#22c55e; }
 .wrong { color:#ef4444; }
 hr { border:1px solid #334155; }
-small { color:#cbd5e1; }
 
-/* --- REVIEW UI (kot na tvoji sliki) --- */
+/* --- REVIEW UI --- */
 .panel { background:#0b1224; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px; }
 .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
 .space { height:14px; }
@@ -41,8 +39,9 @@ small { color:#cbd5e1; }
 .btnbar { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
 .btn { padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:white; cursor:pointer; }
 .btn.primary { background:#3b82f6; border-color: rgba(59,130,246,.35); }
-.btn.ghost { background:transparent; }
 .divider { height:1px; background:rgba(255,255,255,.08); margin:14px 0; }
+
+.option { margin:6px 0; }
 </style>
 </head>
 <body>
@@ -53,26 +52,15 @@ small { color:#cbd5e1; }
 <script>
 const questions = [
 
-  function shuffleInPlace(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
-// random vrstni red vprašanj ob vsakem zagonu
-shuffleInPlace(questions);
-
-
 /* =========================
-BOOLEAN (1–24)
+BOOLEAN
 ========================= */
 
 {type:"boolean",question:"Šifriranje XML dokumentov zagotavlja šifriranje podatkov od začetka do konca (end-to-end).",answer:false},
 {type:"boolean",question:"Vrednost atributa XML elementa mora biti zapisana v narekovajih.",answer:true},
 {type:"boolean",question:"Uporaba kategorije elementa ANY v DTD določa odprti del dokumenta, nad katerim nimamo nadzora.",answer:true},
 {type:"boolean",question:"XML spada v skupino označevalnih jezikov SGML.",answer:true},
-{type:"boolean",question:"V XML dokumentih je privzeto definirana in rezervirana oznaka imenskega prostora xml.",answer:true},
+{type:"boolean",question:"V XML dokumentih je privzeto definirana in rezervirana oznaka imenskega prostora xmlns.",answer:true},
 {type:"boolean",question:"XPath je sintaksa za definiranje delov XML dokumenta.",answer:true},
 {type:"boolean",question:"Nekatere možnosti DTD besednjakov predstavljajo varnostno tveganje.",answer:true},
 {type:"boolean",question:"Ime vsakega sestavljenega tipa v XML besednjaku po dogovoru končamo z besedo 'Type'.",answer:true},
@@ -82,7 +70,7 @@ BOOLEAN (1–24)
 {type:"boolean",question:"Ovit (Enveloped) XML elektronski podpis je povezan s podatki, ki jih podpisuje.",answer:true},
 {type:"boolean",question:"Pri uporabi REST storitev lahko dostopamo neposredno do informacijskega vira.",answer:true},
 {type:"boolean",question:"Ime XML besednjaka mora biti enako imenu imenskega prostora.",answer:false},
-{type:"boolean",question:"REST pomeni RESTful Transfer.",answer:false},
+{type:"boolean",question:"SOAP pomeni RESTful Transfer.",answer:false},
 {type:"boolean",question:"Pri uporabi Web API podatke praviloma prenašamo z uporabo ovojnice SOAP.",answer:false},
 {type:"boolean",question:"Za zapise s stalno dolžino je značilno, da je dolžina vsake vrstice lahko enaka.",answer:true},
 {type:"boolean",question:"Imenski prostor XML elementa mora biti URI.",answer:true},
@@ -94,7 +82,7 @@ BOOLEAN (1–24)
 {type:"boolean",question:"Razred XmlWriter shrani celoten dokument v pomnilnik.",answer:false},
 
 /* =========================
-MULTI (25–43)
+MULTI
 ========================= */
 
 {
@@ -117,16 +105,17 @@ question:"Kateri so standardi za zapis XML besednjakov?",
 options:["DTD","XML Schema","JSON-LD","JSON","XSLT","XSL-FO"],
 answer:[0,1]
 },
+
 {
 type:"multi",
 question:"Označite pravilno zapisane DTD definicije:",
 options:[
-"!ELEMENT knjiga (naslov, avtor)*",
-"!ELEMENT knjiga (naslov,avtor)",
-"!ELEMENT knjiga (naslov|avtor|id)",
-"!ELEMENT knjiga [naslov,avtor]",
-"!ELEMENT knjiga (naslov,avtor|id)",
-"!ELEMENT knjiga (naslov,avtor)*"
+"<!ELEMENT knjiga (naslov, avtor)*>",
+"<!ELEMENT knjiga (naslov,avtor)>",
+"<!ELEMENT knjiga (naslov|avtor|id)>",
+"<!ELEMENT knjiga [naslov,avtor]>",
+"<!ELEMENT knjiga (naslov,avtor|id)>",
+"<!ELEMENT knjiga (naslov,avtor)*>"
 ],
 answer:[1,2]
 },
@@ -187,7 +176,7 @@ options:[
 "/univerza/fakulteta[1]",
 "/univerza/fakulteta[last()]",
 "/univerza[@id]",
-"@id",
+"//id",
 "/univerza/fakulteta",
 "node()"
 ],
@@ -289,6 +278,19 @@ answer:[0]
 
 ];
 
+/* =========================
+RANDOMIZE QUESTION ORDER
+========================= */
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+shuffleInPlace(questions);
+
+/* ========================= */
+
 let current = 0;
 let userAnswers = new Array(questions.length).fill(null);
 
@@ -299,6 +301,7 @@ function render(){
   div.innerHTML = `
     <h2>Vprašanje ${current+1} / ${questions.length}</h2>
     <p>${q.question}</p>
+    <small>Točkovanje: DA/NE = 1; multi = 1 samo če označiš vse pravilne in nič napačnih.</small>
     <div id="options"></div>
     <div>
       <button class="secondary" onclick="prev()">Nazaj</button>
@@ -530,7 +533,6 @@ function restartQuiz(){
   userAnswers = new Array(questions.length).fill(null);
   render();
 }
-
 
 function goBackToQuestions(){
   current = 0;
