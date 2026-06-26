@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kviz: Podatkovna skladišča</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #5b1745;
+      --primary-2: #7c2d5c;
+      --border: #e5e7eb;
+      --good: #dcfce7;
+      --good-border: #22c55e;
+      --bad: #fee2e2;
+      --bad-border: #ef4444;
+      --warn: #fef9c3;
+      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #fbfbfd, var(--bg));
+      color: var(--text);
+    }
+    .app { max-width: 980px; margin: 0 auto; padding: 28px 16px 48px; }
+    .hero, .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); }
+    .hero { padding: 28px; margin-bottom: 18px; }
+    h1 { margin: 0 0 10px; color: var(--primary); font-size: clamp(26px, 4vw, 38px); }
+    h2 { margin: 0 0 14px; color: var(--primary); }
+    p { line-height: 1.55; }
+    .muted { color: var(--muted); }
+    .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+    .rule { border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; background: #fafafa; }
+    .btnrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .08s ease, background .15s ease;
+    }
+    button:hover { background: var(--primary-2); }
+    button:active { transform: translateY(1px); }
+    button.secondary { background: #e5e7eb; color: #111827; }
+    button.secondary:hover { background: #d1d5db; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .progresswrap { height: 10px; background: #e5e7eb; border-radius: 99px; overflow: hidden; margin-bottom: 20px; }
+    .progress { height: 100%; background: var(--primary); width: 0%; transition: width .2s ease; }
+    .card { padding: 24px; }
+    .badge { display: inline-block; font-size: 13px; color: white; background: var(--primary); padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; }
+    .question { font-size: 22px; font-weight: 800; margin: 6px 0 8px; line-height: 1.3; }
+    .hint { color: var(--muted); margin-bottom: 18px; }
+    .options { display: grid; gap: 10px; margin: 18px 0; }
+    label.option {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      align-items: start;
+      gap: 10px;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: #fff;
+      cursor: pointer;
+      line-height: 1.42;
+    }
+    label.option:hover { border-color: #c4b5fd; background: #fcfbff; }
+    input[type="checkbox"], input[type="radio"] { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--primary); }
+    .small { font-size: 14px; }
+    .resultHeader { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 18px; }
+    .scorebox { background: #fafafa; border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+    .scorebig { font-size: 30px; font-weight: 900; color: var(--primary); }
+    .reviewItem { border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin: 12px 0; background: #fff; }
+    .reviewItem.good { border-color: var(--good-border); background: var(--good); }
+    .reviewItem.bad { border-color: var(--bad-border); background: #fff7f7; }
+    .reviewTitle { font-weight: 800; margin-bottom: 8px; }
+    .answerList { margin: 8px 0 0; padding-left: 22px; }
+    .answerList li { margin: 4px 0; }
+    .pill { display:inline-block; padding: 3px 8px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+    .pill.good { background: var(--good); color: #166534; border: 1px solid var(--good-border); }
+    .pill.bad { background: var(--bad); color: #991b1b; border: 1px solid var(--bad-border); }
+    .pill.warn { background: var(--warn); color: #854d0e; border: 1px solid #eab308; }
+    .hidden { display: none !important; }
+    .footerNote { color: var(--muted); margin-top: 18px; font-size: 13px; }
+    @media (max-width: 560px) {
+      .hero, .card { padding: 18px; }
+      .question { font-size: 19px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="start" class="hero">
+      <h1>Kviz: Podatkovna skladišča</h1>
+      <p>Vsak poskus izbere <strong>15 naključnih vprašanj</strong> iz baze. Kviz si zapomni, katera vprašanja so že bila uporabljena, zato pri naslednjem poskusu dobiš nova vprašanja, dokler ne prideš čez celotno bazo.</p>
+      <div class="rules">
+        <div class="rule"><strong>Točkovanje:</strong><br>pravilen označen odgovor = +1 točka</div>
+        <div class="rule"><strong>Odbijanje:</strong><br>napačno označen odgovor = -1 točka</div>
+        <div class="rule"><strong>Neoznačeno:</strong><br>ne dobiš in ne izgubiš točke</div>
+        <div class="rule"><strong>Način:</strong><br>eno vprašanje na stran, gumbi Nazaj/Naprej</div>
+      </div>
+      <div class="btnrow">
+        <button onclick="startQuiz()">Začni nov poskus</button>
+        <button class="secondary" onclick="resetPool()">Ponastavi random vrstni red</button>
+      </div>
+      <p class="footerNote">V bazi je 83 vprašanj. Nekatera imajo samo en podan odgovor, ker je bil v tvojem dokumentu podan samo ta odgovor.</p>
+    </section>
+
+    <section id="quiz" class="hidden">
+      <div class="topbar">
+        <div>
+          <strong id="counter"></strong><br>
+          <span id="answered" class="muted small"></span>
+        </div>
+        <button class="secondary" onclick="confirmRestart()">Nov poskus</button>
+      </div>
+      <div class="progresswrap"><div id="progress" class="progress"></div></div>
+      <div class="card">
+        <span id="badge" class="badge"></span>
+        <div id="question" class="question"></div>
+        <div id="hint" class="hint"></div>
+        <div id="options" class="options"></div>
+        <div class="btnrow">
+          <button id="prevBtn" class="secondary" onclick="prevQuestion()">Nazaj</button>
+          <button id="nextBtn" onclick="nextQuestion()">Naprej</button>
+          <button id="submitBtn" class="hidden" onclick="submitQuiz()">Oddaj odgovore</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="hidden">
+      <div class="hero">
+        <h2>Pregled rezultatov</h2>
+        <div class="resultHeader">
+          <div class="scorebox"><div class="muted">Dosežene točke</div><div id="scoreTotal" class="scorebig"></div></div>
+          <div class="scorebox"><div class="muted">Odstotek</div><div id="scorePercent" class="scorebig"></div></div>
+          <div class="scorebox"><div class="muted">Vprašanja</div><div id="scoreQuestions" class="scorebig"></div></div>
+        </div>
+        <p class="muted">Pri vsakem vprašanju spodaj vidiš svoje označene odgovore, pravilne odgovore in izračun točk.</p>
+        <div class="btnrow">
+          <button onclick="startQuiz()">Začni naslednji poskus</button>
+          <button class="secondary" onclick="showStart()">Nazaj na začetek</button>
+        </div>
+      </div>
+      <div id="review"></div>
+    </section>
+  </main>
+
+  <script>
+    const QUESTIONS = [
+  {
+    "id": "q1",
+    "section": "Prvi kolokvij",
+    "originalNumber": 1,
+    "type": "tf",
+    "question": "Slabost uporabe umetnih ključev je v izolaciji podatkovnega skladišča od sprememb v operativnem sistemu ?",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q2",
+    "section": "Prvi kolokvij",
+    "originalNumber": 2,
+    "type": "multi",
+    "question": "Katere trditve držijo za porazdeljeno arhitekturo podatkovnega skladiščenja?",
+    "options": [
+      {
+        "text": "Uporablja se skupno podatkovno vodilo",
+        "correct": true
+      },
+      {
+        "text": "Uporablja pristop od spodaj navzgor",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q3",
+    "section": "Prvi kolokvij",
+    "originalNumber": 3,
+    "type": "multi",
+    "question": "Podatkovna tržnica je podatkovna zbirka, ki je:",
+    "options": [
+      {
+        "text": "Del podatkovnega skladišča in predstavlja podatke točno določenega podatkovnega procesa",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q4",
+    "section": "Prvi kolokvij",
+    "originalNumber": 4,
+    "type": "tf",
+    "question": "Podatkovno skladišče vsebuje zgodovinske in kumulativne podatke iz enega ali več virov.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q5",
+    "section": "Prvi kolokvij",
+    "originalNumber": 5,
+    "type": "tf",
+    "question": "Agregacija povzroča izgubo informacij.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q6",
+    "section": "Prvi kolokvij",
+    "originalNumber": 6,
+    "type": "multi",
+    "question": "Katere lastnosti niso značilne za podatkovna jezera:",
+    "options": [
+      {
+        "text": "Shema oblikovana pred implementacijo",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q7",
+    "section": "Prvi kolokvij",
+    "originalNumber": 7,
+    "type": "multi",
+    "question": "Katere trditve ne držijo za »od zgoraj navzdol« pristop k oblikovanju podatkovnega skladišča",
+    "options": [
+      {
+        "text": "Do rešitve pridemo hitreje, z manj stroški in manjšim tveganjem.",
+        "correct": true
+      },
+      {
+        "text": "Predvideva izgradnjo celotnega PS in nato posameznih področnih PS",
+        "correct": false
+      },
+      {
+        "text": "Ni odporen na spremebe.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q8",
+    "section": "Prvi kolokvij",
+    "originalNumber": 8,
+    "type": "multi",
+    "question": "Komponente podatkovnega skladišča so:",
+    "options": [
+      {
+        "text": "Podatkovna baza",
+        "correct": true
+      },
+      {
+        "text": "Vodilo PS s področnimi skladišči",
+        "correct": true
+      },
+      {
+        "text": "Orodja ETL",
+        "correct": true
+      },
+      {
+        "text": "Orodja poizvedbe",
+        "correct": true
+      },
+      {
+        "text": "Metapodatki",
+        "correct": true
+      }
+    ],
+    "maxPoints": 5
+  },
+  {
+    "id": "q9",
+    "section": "Prvi kolokvij",
+    "originalNumber": 9,
+    "type": "multi",
+    "question": "Katere trditve držijo za dimenzijsko modeliranje?",
+    "options": [
+      {
+        "text": "Dimenzijske tabele shranjujejo lastnosti poslovnih dogodkov",
+        "correct": true
+      },
+      {
+        "text": "Tabele dejstev shranjujejo numeričnae meritve poslovnih dogodkov",
+        "correct": true
+      },
+      {
+        "text": "Dejstva predstavljajo izmerljive podatke poslovnega dogodka",
+        "correct": true
+      },
+      {
+        "text": "Dimenzijske tabele so denormalizirane",
+        "correct": true
+      }
+    ],
+    "maxPoints": 4
+  },
+  {
+    "id": "q10",
+    "section": "Prvi kolokvij",
+    "originalNumber": 10,
+    "type": "multi",
+    "question": "Za pretvorbo iz ER modela v dimenzijski model držijo naslednje trditve:",
+    "options": [
+      {
+        "text": "Sesedanje hiearhije pomeni, da se višje ležeče entitete sesedajo v nižje ležeče entitete.",
+        "correct": true
+      },
+      {
+        "text": "Razvrščanje entitet v tri kategorije: izvršitvene, sestavljene, klasifikacijske, operator agregacije se uporabi v izvršeni entiteti z namenom kreiranje nove entitete s seštevnimi podatki.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q11",
+    "section": "Prvi kolokvij",
+    "originalNumber": 11,
+    "type": "multi",
+    "question": "Katere so tehnike odloženega zajemanja podatkov ?",
+    "options": [
+      {
+        "text": "Zajem s primerjavo datotek",
+        "correct": true
+      },
+      {
+        "text": "Zajem na podlagi časovnega žiga",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q12",
+    "section": "Prvi kolokvij",
+    "originalNumber": 12,
+    "type": "multi",
+    "question": "Katere trditve držijo za stonoge?",
+    "options": [
+      {
+        "text": "Povzročijo povečanje velikosti tabele dejstev",
+        "correct": true
+      },
+      {
+        "text": "Onemogočijo učinkovito indeksiranje",
+        "correct": true
+      },
+      {
+        "text": "So posledica denormalizacije tabele dejstev",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q13",
+    "section": "Prvi kolokvij",
+    "originalNumber": 13,
+    "type": "tf",
+    "question": "Število tujih ključev v tabeli dejstev določa število dejstev.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q14",
+    "section": "Prvi kolokvij",
+    "originalNumber": 14,
+    "type": "multi",
+    "question": "Katere trditve držijo ?",
+    "options": [
+      {
+        "text": "Zrno dimenzijske tabele določa stopnjo podrobnosti.",
+        "correct": true
+      },
+      {
+        "text": "Pol-aditivni atributi omogočajo seštevanje samo po nekaterih dimenzijah",
+        "correct": true
+      },
+      {
+        "text": "Aditivna dejstva lahko seštevamo po vseh dimenzijah",
+        "correct": true
+      },
+      {
+        "text": "Tabele dejstev imajo veliko število zapisov in majhno število atributov",
+        "correct": true
+      },
+      {
+        "text": "Zrno tabele dejstev določa stopnjo podrobnosti.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 5
+  },
+  {
+    "id": "q15",
+    "section": "Prvi kolokvij",
+    "originalNumber": 15,
+    "type": "tf",
+    "question": "Poznamo inicializacijski in inkrementalni ETL proces.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q16",
+    "section": "Prvi kolokvij",
+    "originalNumber": 16,
+    "type": "tf",
+    "question": "Za tabele dejstev je značilno, da praviloma vsebujejo lasten primarni ključ.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q17",
+    "section": "Prvi kolokvij",
+    "originalNumber": 17,
+    "type": "tf",
+    "question": "Rezultat normalizacije dejstev je sneženje.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q18",
+    "section": "Prvi kolokvij",
+    "originalNumber": 18,
+    "type": "multi",
+    "question": "Katere so lastnosti dimenzijskega modela ?",
+    "options": [
+      {
+        "text": "Model omogoča preprosto optimizacijo poizvedovanj",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q19",
+    "section": "Prvi kolokvij",
+    "originalNumber": 19,
+    "type": "multi",
+    "question": "Katere trditve držijo za izpeljane tabele agregacijske sheme:",
+    "options": [
+      {
+        "text": "Strnjene tabele dejstev povzemajo dejsteva iz dveh ali več tabel dejstev",
+        "correct": true
+      },
+      {
+        "text": "Vrtilne tabele dejstev zajemajo eno dejstno z nizom dejstev",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q20",
+    "section": "Prvi kolokvij",
+    "originalNumber": 20,
+    "type": "tf",
+    "question": "Za atribute dimenzijskih tabel je značilno, da vsebujejo aditivna dejstva.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q21",
+    "section": "Prvi kolokvij",
+    "originalNumber": 21,
+    "type": "tf",
+    "question": "Rezultat normalizacije dimenzij je sneženje.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q22",
+    "section": "Prvi kolokvij",
+    "originalNumber": 22,
+    "type": "tf",
+    "question": "Agregacija omogoča pridobitev podrobnih informacij.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q23",
+    "section": "Prvi kolokvij",
+    "originalNumber": 23,
+    "type": "tf",
+    "question": "Število ključev v tabeli dejstev določa število s tabelo dejstev povezanim dimenzijskih tabel.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q24",
+    "section": "Prvi kolokvij",
+    "originalNumber": 24,
+    "type": "multi",
+    "question": "Katere so prednosti uporabe umetnih ključev?",
+    "options": [
+      {
+        "text": "PS izolirajo od sprmemb v operativnem sistemu",
+        "correct": true
+      },
+      {
+        "text": "Rešujejo problem umetno dodatni zapisov",
+        "correct": true
+      },
+      {
+        "text": "Omogočajo prihranek prostora",
+        "correct": true
+      },
+      {
+        "text": "Poenostavijo izvedbo zasledovanja sprememb v dimenzijskih tabelah",
+        "correct": true
+      }
+    ],
+    "maxPoints": 4
+  },
+  {
+    "id": "q25",
+    "section": "Prvi kolokvij",
+    "originalNumber": 25,
+    "type": "multi",
+    "question": "Kako si sledijo koraki razvoja dimenzijskega modela:",
+    "options": [
+      {
+        "text": "Izbira poslovnega procesa, določanje zrna, določanje dimenzij, določanje dejstev.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q26",
+    "section": "Prvi kolokvij",
+    "originalNumber": 26,
+    "type": "multi",
+    "question": "Katere trditve držijo za tehnike zajemanja podatkov ?",
+    "options": [
+      {
+        "text": "Najenostavnejša in najcenejša za implementacijo je tehnika zajema z beleženjem transakcij.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q27",
+    "section": "Prvi kolokvij",
+    "originalNumber": 27,
+    "type": "multi",
+    "question": "Katere trditve držijo za proces zajemanja podatkov:",
+    "options": [
+      {
+        "text": "Pri začetnem polnjenju uporabimo zajemanje statičnih podatkov",
+        "correct": true
+      },
+      {
+        "text": "Zgodovinske podatke iz operativnega sistema zajamemo v odvisnosti od načina hrambe podatkov",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q28",
+    "section": "Prvi kolokvij",
+    "originalNumber": 28,
+    "type": "tf",
+    "question": "Za tebele dejstev je značilno, da vsebujejo aditivna dejstva.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q29",
+    "section": "Prvi kolokvij",
+    "originalNumber": 29,
+    "type": "tf",
+    "question": "ETL je proces, s katerim zajamemo podatke iz različnih nestrukturiranih podatkovnih virov, jih prečistimo in preoblikujemo ter jih naložimo v podatkovno skladišče.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q30",
+    "section": "Prvi kolokvij",
+    "originalNumber": 30,
+    "type": "multi",
+    "question": "Kateri so razlogi proti snežinkam:",
+    "options": [
+      {
+        "text": "Model postane nepregleden",
+        "correct": true
+      },
+      {
+        "text": "Oteženo pregledovanje dimenzij",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q31",
+    "section": "Prvi kolokvij",
+    "originalNumber": 31,
+    "type": "multi",
+    "question": "Katere trditve držijo za podatkovno jezero:",
+    "options": [
+      {
+        "text": "Primerno kot osnova za strojno učenje in napovedno analitiko.",
+        "correct": true
+      },
+      {
+        "text": "Omogoča obdelavo pretočnih podatkov",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q32",
+    "section": "Prvi kolokvij",
+    "originalNumber": 32,
+    "type": "multi",
+    "question": "Dimenzijsko modeliranje omogoča:",
+    "options": [
+      {
+        "text": "Lažje poizvedbe pri uporabi velike količine podatkov",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q33",
+    "section": "Prvi kolokvij",
+    "originalNumber": 33,
+    "type": "multi",
+    "question": "katere trditve držijo za centralizirano arhitekturo podatkovnega skladišča:",
+    "options": [
+      {
+        "text": "predvideva najprej izgranjo normaliziranega podatkovnega skladišča, nato pa področnih podatkovnih skladišč",
+        "correct": true
+      },
+      {
+        "text": "Uporablja pristop od zgoraj navzdol.",
+        "correct": true
+      },
+      {
+        "text": "Področna PS se polnijo izključno iz osrednjega PS",
+        "correct": true
+      },
+      {
+        "text": "Predvideva uporabo E-R modela",
+        "correct": true
+      }
+    ],
+    "maxPoints": 4
+  },
+  {
+    "id": "q34",
+    "section": "Prvi kolokvij",
+    "originalNumber": 34,
+    "type": "multi",
+    "question": "Katere trditve držijo za »od spodaj navzgor« pristop k oblikovanju podatkovnega skladišča?",
+    "options": [
+      {
+        "text": "Do rešitve pridemo hitreje, z manj stroški in manjšim tveganjem",
+        "correct": true
+      },
+      {
+        "text": "Področna PS med seboj niso povezana",
+        "correct": true
+      },
+      {
+        "text": "Predvideva zdrževanje področnih PS s pomočjo arhitekture vodila",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q35",
+    "section": "Prvi kolokvij",
+    "originalNumber": 35,
+    "type": "multi",
+    "question": "Katere trditve držijo ?",
+    "options": [
+      {
+        "text": "Podatkovno skladišče vsebuje zgodovinske in kumulativne podatke iz enega ali več virov",
+        "correct": true
+      },
+      {
+        "text": "Integracija v podatkovnem skladišču pomeni vzpostavitev skupne merske enote za vse podobne podatke iz različnih zbirk podatkov.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q36",
+    "section": "Prvi kolokvij",
+    "originalNumber": 36,
+    "type": "multi",
+    "question": "Dimenzijsko modeliranje omogoča:",
+    "options": [
+      {
+        "text": "Lažje poizvedbe pri uporabi velike količine podatkov",
+        "correct": true
+      },
+      {
+        "text": "Preoblikovanje podatkov in hrambo v denormalizirani obliki",
+        "correct": true
+      },
+      {
+        "text": "Hitrejše izvajanje povpraševanj.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q37",
+    "section": "Prvi kolokvij",
+    "originalNumber": 37,
+    "type": "multi",
+    "question": "Katere trditve držijo ?",
+    "options": [
+      {
+        "text": "Zrno tabele dejstev določa stopnjo podrobnosti",
+        "correct": true
+      },
+      {
+        "text": "Pol-aditivni atributi omogočajo seštevanje samo po nekaterih dimenzijah.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q38",
+    "section": "Prvi kolokvij",
+    "originalNumber": 38,
+    "type": "multi",
+    "question": "Tehnike takojšnjega zajemanja podatkov ?",
+    "options": [
+      {
+        "text": "Zajem z beleženjem transakcij",
+        "correct": true
+      },
+      {
+        "text": "Zajem s primerjavo datotek",
+        "correct": false
+      },
+      {
+        "text": "Zajem na podlagi časovnega žiga",
+        "correct": false
+      },
+      {
+        "text": "Zajem z uporabo prožilcev",
+        "correct": true
+      },
+      {
+        "text": "Zajem v izvorni kodi",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q39",
+    "section": "Prvi kolokvij",
+    "originalNumber": 39,
+    "type": "multi",
+    "question": "Katere trditve držijo za agregacijsko shemo?",
+    "options": [
+      {
+        "text": "Mora zagotavljati enake rezultate, kot jih zagotavlja osnovna shema.",
+        "correct": true
+      },
+      {
+        "text": "Pospeši izvajanje poizvedb in zadovolji bolj podrobne poizvedbe kot osnovna shema.",
+        "correct": false
+      },
+      {
+        "text": "Mora zagotavljati enaka dejstva in dimenzijske atribute, kot jih zagotavlja osnovna shema",
+        "correct": true
+      },
+      {
+        "text": "Vsaka agregacijska tabela je povzetek njene ustrezne osnovne tabele",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q40",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 1,
+    "type": "multi",
+    "question": "Med odločitvena drevesa sodijo algoritmi:",
+    "options": [
+      {
+        "text": "C4.5",
+        "correct": true
+      },
+      {
+        "text": "ID3",
+        "correct": true
+      },
+      {
+        "text": "CART",
+        "correct": true
+      },
+      {
+        "text": "CHAID",
+        "correct": true
+      }
+    ],
+    "maxPoints": 4
+  },
+  {
+    "id": "q41",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 2,
+    "type": "multi",
+    "question": "Katere trditve držijo za sistem OLAP",
+    "options": [
+      {
+        "text": "Omogoča optimiziranje poslovanja",
+        "correct": true
+      },
+      {
+        "text": "Ponuja agregirane podatke",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q42",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 3,
+    "type": "multi",
+    "question": "Navedite vsaj štiri naloge preoblikovanja podatkov.",
+    "options": [
+      {
+        "text": "Selekcija, pretvorba, seštevanje, razcepitev",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q43",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 4,
+    "type": "tf",
+    "question": "K-najbližnjih sosedov je metoda gručenja.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q44",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 5,
+    "type": "tf",
+    "question": "Destruktivno zlitje se uporablja pri vsakodnevnem polnjenju, medtem ko se konstruktivno zlitje uporablja pri počasi se spreminjajočih dimenzijah.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q45",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 6,
+    "type": "multi",
+    "question": "Katere trditve držijo ?",
+    "options": [
+      {
+        "text": "Rezanje – 'slice' omogoča pridobivanje podkocke z izbiro ene dimenzije.",
+        "correct": true
+      },
+      {
+        "text": "OLAP kodke ponazarjajo različne poglede na dimenzijski model.",
+        "correct": true
+      },
+      {
+        "text": "Rezanje – 'dice' omogoča pridobivanje podkocke z izbiro dveh ali več dimenzij",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q46",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 7,
+    "type": "multi",
+    "question": "Katere trditve držijo?",
+    "options": [
+      {
+        "text": "Pri osvežitvi podatkovnega skladišča periodično zamenjamo podatke iz vseh tabel podatkovnega skladišča.",
+        "correct": true
+      },
+      {
+        "text": "Lažje je izvesti osvežitev kot posodobitev podatkovnega skladišča.",
+        "correct": true
+      },
+      {
+        "text": "Za konstruktivno zlitje velja, da če se primarni ključ novega zapisa ujema s ključem obstoječega zapisa, pustimo obstoječ zapis takšen kot je, dodamo nov zapis, in ga označimo kot naslednika starega. DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q47",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 8,
+    "type": "multi",
+    "question": "Katere trditve držijo?",
+    "options": [
+      {
+        "text": "Pri počasi se spreminjajočih dimenzijah uporabimo destruktivno zlitje.",
+        "correct": true
+      },
+      {
+        "text": "Pri začetnem polnjenju po delih uporabimo prvič način nalaganja, nato pa za vsako nadaljnje polnjenje način dodajanja.",
+        "correct": true
+      },
+      {
+        "text": "Pri vsakodnevnem polnjenju uporabimo konstruktivno zlitje.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q48",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 9,
+    "type": "multi",
+    "question": "OLAP operacije vključujejo:",
+    "options": [
+      {
+        "text": "Vrtenje",
+        "correct": true
+      },
+      {
+        "text": "Zvijanje",
+        "correct": true
+      },
+      {
+        "text": "Vrtanje v globino",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q49",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 10,
+    "type": "tf",
+    "question": "Odločitveno drevo je klasifikacijska metoda.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q50",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 11,
+    "type": "multi",
+    "question": "Katere trditve držijo ?",
+    "options": [
+      {
+        "text": "Vrtanje v globino omogoča pogled nad podrobnimi podatki",
+        "correct": true
+      },
+      {
+        "text": "Zvijanje omogoča agregacijo podatkov",
+        "correct": true
+      },
+      {
+        "text": "Vrtenje omogoča alternativni pogled nad podatki",
+        "correct": true
+      },
+      {
+        "text": "Vrtanje skozi omogoča pogled nad podrobnimi podatki po posamezni celici kocke.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 4
+  },
+  {
+    "id": "q51",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 12,
+    "type": "tf",
+    "question": "Nenadzorovano učenje poemni kategorizacijo elementov s skupnimi lastnostmi, kjer pravilni odgovori niso podani.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q52",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 13,
+    "type": "multi",
+    "question": "Katere trditve ne držijo ?",
+    "options": [
+      {
+        "text": "V OLAP sistemu so podatki normalizirani in organizirani v dimenzjiski model",
+        "correct": true
+      },
+      {
+        "text": "V OLAP sistemi so optimizirani za branje podatkov in podpirajo delo majhnega števila uporabnikov",
+        "correct": false
+      },
+      {
+        "text": "OLAP sistem neenakomerno obremeni vire, OLTP pa enakomerno.",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q53",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 14,
+    "type": "tf",
+    "question": "Klasifikacija je tehnika, ki se izvaja z nenadzorovanim učenjem, gručenje pa z nadzorovanim učenjem.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q54",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 15,
+    "type": "tf",
+    "question": "Nadzorovano učenje pomeni kategorizacijo elementov s skupnimi lastnostmi, kjer pravilni odgovori niso podani.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q55",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 16,
+    "type": "tf",
+    "question": "K-means sodi med klasifikacijske metode.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q56",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 17,
+    "type": "multi",
+    "question": "Katere trditve držijo ?",
+    "options": [
+      {
+        "text": "Ob uporabi polnjenja podatkovnega skladišla z dodajanjem, če v tabeli obstajajo podatki, se novi dodajo, obstoječe pa se ohrani.",
+        "correct": true
+      },
+      {
+        "text": "Ob uporabi polnjenja podatkovnega skladišla z dodajanjem, če v tabeli obstajajo podatki, se najprej tabela izbriše in nato vstavijo podatki.",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q57",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 18,
+    "type": "tf",
+    "question": "Razdelitev polja, dekodiranje polj, rekonstrukcija ključev in odstranitev redundance niso tipi integracije podatkov.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q58",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 19,
+    "type": "multi",
+    "question": "Katere trditve ne držijo ?",
+    "options": [
+      {
+        "text": "Posodobitev podatkovnega skladišča se izplača takrat, ko imamo več kot 25% sprejemnih zapisov.",
+        "correct": true
+      },
+      {
+        "text": "Osvežitev podatkovnega skladišča se izplača dokler nimamo več kot 25% spremenjenih zapisov.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q59",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 20,
+    "type": "tf",
+    "question": "Nevrenske mreže sodijo med metode gručenja.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q60",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 21,
+    "type": "multi",
+    "question": "Katere trditve držijo za modele shranjevanja obdelanih podatkov ?",
+    "options": [
+      {
+        "text": "MOLAP omogoča shranjevanje izvornih podatkov in vseh izračunanih agregatov v speacializirano večdimenzionalno podatkovno bazo.",
+        "correct": true
+      },
+      {
+        "text": "HOLAP omogoča shranjevanje izvornih podatkov v relacijskih virih, vseh izračunanih agregatov pa v specializirani večdimenzionalni PB.",
+        "correct": true
+      },
+      {
+        "text": "ROLAP omogoča shranjevanje izvornih podatkov in vseh izračunanih agregatov v izvornih relacijskih tabelah.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q61",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 22,
+    "type": "multi",
+    "question": "Katere trditve ne držijo ?",
+    "options": [
+      {
+        "text": "HOLAP zaseda veliko prostora na disku in omogoča krajši odzivni čas.",
+        "correct": true
+      },
+      {
+        "text": "MOLAP je najbolj učinkovito shranjevanje.",
+        "correct": true
+      },
+      {
+        "text": "MOLAP zaseda malo prostora na disku in ima daljši odzivni čas.",
+        "correct": true
+      },
+      {
+        "text": "ROLAP omogoča krajši odzivni čas in zaseda malo prostora na disku.",
+        "correct": true
+      }
+    ],
+    "maxPoints": 4
+  },
+  {
+    "id": "q62",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 23,
+    "type": "multi",
+    "question": "Med tipe preoblikovanja znotraj ETL procesa sodijo:",
+    "options": [
+      {
+        "text": "Preštevanje zapisov vseh tabel",
+        "correct": true
+      },
+      {
+        "text": "Pretvorba nabora znakov",
+        "correct": true
+      },
+      {
+        "text": "Dekodiranje polj",
+        "correct": true
+      },
+      {
+        "text": "Sprememba podatkovnega tipa",
+        "correct": true
+      }
+    ],
+    "maxPoints": 4
+  },
+  {
+    "id": "q63",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 24,
+    "type": "tf",
+    "question": "Nenadzorovano učenje pomeni učenje iz primerkov, kjer so podani pravilni odgovori.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q64",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 25,
+    "type": "tf",
+    "question": "Odločitvena drevesa ponudijo rezultat v številčni obliki, medtem ko regresijska drevesa pa v obliki razreda.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q65",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 26,
+    "type": "tf",
+    "question": "Nadzorovano učenje pomeni učenje iz primerkov, kjer so podani pravilni odgovori.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q66",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 27,
+    "type": "tf",
+    "question": "Podporni vektorji in nevronske mreže so metode klasifikacije.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q67",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 28,
+    "type": "tf",
+    "question": "Destruktivno zlitje pomeni, da posodobimo star zapis, če se primerni ključ novega zapisa ujema s ključem obstoječega zapisa.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q68",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 29,
+    "type": "tf",
+    "question": "Konstruktivno zlitje se uporablja pri vsakodnevnem polnjenju.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q69",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 30,
+    "type": "tf",
+    "question": "Pri začetnem polnjenju po delih uporabimo za prvo polnjenje način dodajanja, nato pa za vsako nadaljnje polnjenje način nalaganja.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q70",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 31,
+    "type": "multi",
+    "question": "Katere trditve držijo za OLAP sistem?",
+    "options": [
+      {
+        "text": "Ponuja sumanirane podatke",
+        "correct": true
+      },
+      {
+        "text": "Omogoča optimiziranje poslovanja",
+        "correct": true
+      }
+    ],
+    "maxPoints": 2
+  },
+  {
+    "id": "q71",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 32,
+    "type": "tf",
+    "question": "Pri počasi se spreminjajočih dimenzijah uporabimo destruktivno zlitje.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q72",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 33,
+    "type": "tf",
+    "question": "Pri posodobitvi podatkovnega skladišča je potrebno izbrati metodo in strategijo za zajem sprememb iz vsakega podatkovnega izvora.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q73",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 34,
+    "type": "tf",
+    "question": "Nevronske mreže sodijo med metode gručenja.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q74",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 35,
+    "type": "tf",
+    "question": "Klasifikacija je tehnika, ki se izvaja z nadzorovanim učenjem, gručenje pa z nenadzorovanim učenjem.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q75",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 36,
+    "type": "tf",
+    "question": "Podporni vektorji in nevronske mreže so metode gručenja.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q76",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 37,
+    "type": "tf",
+    "question": "Nadzorovano učenje pomeni kategorizacijo elementov s skupnimi lastnostmi, kjer pravilni odgovori niso podani.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q77",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 38,
+    "type": "multi",
+    "question": "Med odločitvena drevesa ne sodijo algoritmi:",
+    "options": [
+      {
+        "text": "Apriori",
+        "correct": true
+      },
+      {
+        "text": "BatMiner",
+        "correct": true
+      },
+      {
+        "text": "ARM-DE",
+        "correct": true
+      }
+    ],
+    "maxPoints": 3
+  },
+  {
+    "id": "q78",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 39,
+    "type": "tf",
+    "question": "Regresijska drevesa ponudijo rezultat v številčni obliki, odločitvena drevesa pa v obliki razreda.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q79",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 40,
+    "type": "tf",
+    "question": "Pri osvežitvi podatkovnega skladišča je potrebno izbrati metodo in strategijo za zajem sprememb iz vsakega podatkovnega izvora.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": false
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": true
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q80",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 41,
+    "type": "tf",
+    "question": "Pri osvežitvi podatkovnega skladišla periodično zamenjamo podatke iz vseh tabeh podatkovnega skladišča.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q81",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 42,
+    "type": "tf",
+    "question": "ROLAP se uporablja, ko imamo veliko podatkov in kadar do podatkov ne dostopamo pogosto.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q82",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 43,
+    "type": "tf",
+    "question": "HOLAP omogoča krajši odzivni čas in zaseda malo prostora na disku.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  },
+  {
+    "id": "q83",
+    "section": "DRUGI KOLOKVIJ",
+    "originalNumber": 44,
+    "type": "tf",
+    "question": "MOLAP zaseda veliko prostor na disku in omogoča krajši odzivni čas.",
+    "options": [
+      {
+        "text": "DRŽI",
+        "correct": true
+      },
+      {
+        "text": "NE DRŽI",
+        "correct": false
+      }
+    ],
+    "maxPoints": 1
+  }
+];
+    const ATTEMPT_SIZE = 15;
+    let attempt = [];
+    let currentIndex = 0;
+    let answers = {};
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function getPool() {
+      try {
+        const raw = localStorage.getItem('ps_quiz_pool_v1');
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch { return []; }
+    }
+
+    function savePool(pool) {
+      localStorage.setItem('ps_quiz_pool_v1', JSON.stringify(pool));
+    }
+
+    function buildAttemptIds() {
+      let pool = getPool().filter(id => QUESTIONS.some(q => q.id === id));
+      const selected = [];
+      while (selected.length < Math.min(ATTEMPT_SIZE, QUESTIONS.length)) {
+        if (pool.length === 0) {
+          const selectedSet = new Set(selected);
+          pool = shuffle(QUESTIONS.map(q => q.id).filter(id => !selectedSet.has(id)));
+        }
+        selected.push(pool.shift());
+      }
+      savePool(pool);
+      return selected;
+    }
+
+    function startQuiz() {
+      const ids = buildAttemptIds();
+      attempt = ids.map(id => QUESTIONS.find(q => q.id === id));
+      currentIndex = 0;
+      answers = {};
+      document.getElementById('start').classList.add('hidden');
+      document.getElementById('results').classList.add('hidden');
+      document.getElementById('quiz').classList.remove('hidden');
+      renderQuestion();
+      window.scrollTo(0, 0);
+    }
+
+    function resetPool() {
+      localStorage.removeItem('ps_quiz_pool_v1');
+      alert('Random vrstni red je ponastavljen. Naslednji poskus bo znova začel iz celotne baze vprašanj.');
+    }
+
+    function confirmRestart() {
+      if (confirm('Začneš nov poskus? Trenutni odgovori se izbrišejo.')) startQuiz();
+    }
+
+    function showStart() {
+      document.getElementById('quiz').classList.add('hidden');
+      document.getElementById('results').classList.add('hidden');
+      document.getElementById('start').classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    function renderQuestion() {
+      const q = attempt[currentIndex];
+      const selected = new Set(answers[q.id] || []);
+      document.getElementById('counter').textContent = `Vprašanje ${currentIndex + 1} / ${attempt.length}`;
+      const answeredCount = attempt.filter(x => (answers[x.id] || []).length > 0).length;
+      document.getElementById('answered').textContent = `Odgovorjeno: ${answeredCount} / ${attempt.length}`;
+      document.getElementById('progress').style.width = `${((currentIndex + 1) / attempt.length) * 100}%`;
+      document.getElementById('badge').textContent = `${q.section} • vprašanje ${q.originalNumber} • max ${q.maxPoints} točk`;
+      document.getElementById('question').textContent = q.question;
+      document.getElementById('hint').textContent = q.type === 'tf' ? 'Izberi en odgovor.' : 'Izberi vse pravilne odgovore. Napačen označen odgovor odbije 1 točko.';
+
+      const box = document.getElementById('options');
+      box.innerHTML = '';
+      q.options.forEach((opt, idx) => {
+        const id = `${q.id}_opt_${idx}`;
+        const label = document.createElement('label');
+        label.className = 'option';
+        const input = document.createElement('input');
+        input.type = q.type === 'tf' ? 'radio' : 'checkbox';
+        input.name = q.id;
+        input.id = id;
+        input.checked = selected.has(idx);
+        input.onchange = () => updateAnswer(q, idx, input.checked);
+        const span = document.createElement('span');
+        span.textContent = `${String.fromCharCode(97 + idx)}) ${opt.text}`;
+        label.appendChild(input);
+        label.appendChild(span);
+        box.appendChild(label);
+      });
+
+      document.getElementById('prevBtn').disabled = currentIndex === 0;
+      const isLast = currentIndex === attempt.length - 1;
+      document.getElementById('nextBtn').classList.toggle('hidden', isLast);
+      document.getElementById('submitBtn').classList.toggle('hidden', !isLast);
+    }
+
+    function updateAnswer(q, idx, checked) {
+      let arr = answers[q.id] || [];
+      if (q.type === 'tf') {
+        arr = [idx];
+      } else {
+        if (checked) {
+          if (!arr.includes(idx)) arr.push(idx);
+        } else {
+          arr = arr.filter(x => x !== idx);
+        }
+      }
+      answers[q.id] = arr;
+      renderQuestion();
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) { currentIndex--; renderQuestion(); window.scrollTo(0, 0); }
+    }
+
+    function nextQuestion() {
+      if (currentIndex < attempt.length - 1) { currentIndex++; renderQuestion(); window.scrollTo(0, 0); }
+    }
+
+    function scoreQuestion(q) {
+      const selected = new Set(answers[q.id] || []);
+      let correctSelected = 0;
+      let wrongSelected = 0;
+      let missedCorrect = 0;
+      q.options.forEach((opt, idx) => {
+        if (selected.has(idx) && opt.correct) correctSelected++;
+        if (selected.has(idx) && !opt.correct) wrongSelected++;
+        if (!selected.has(idx) && opt.correct) missedCorrect++;
+      });
+      const score = correctSelected - wrongSelected;
+      const max = q.options.filter(o => o.correct).length;
+      const fullyCorrect = wrongSelected === 0 && missedCorrect === 0;
+      return { score, max, correctSelected, wrongSelected, missedCorrect, fullyCorrect };
+    }
+
+    function submitQuiz() {
+      const unanswered = attempt.filter(q => (answers[q.id] || []).length === 0).length;
+      if (unanswered > 0 && !confirm(`Imaš še ${unanswered} neodgovorjenih vprašanj. Vseeno oddam?`)) return;
+      let total = 0;
+      let maxTotal = 0;
+      let fullyCorrectCount = 0;
+      const review = document.getElementById('review');
+      review.innerHTML = '';
+
+      attempt.forEach((q, idx) => {
+        const s = scoreQuestion(q);
+        total += s.score;
+        maxTotal += s.max;
+        if (s.fullyCorrect) fullyCorrectCount++;
+        const selected = new Set(answers[q.id] || []);
+        const selectedTexts = [...selected].sort((a,b) => a-b).map(i => `${String.fromCharCode(97 + i)}) ${q.options[i].text}`);
+        const correctTexts = q.options.map((o, i) => o.correct ? `${String.fromCharCode(97 + i)}) ${o.text}` : null).filter(Boolean);
+        const item = document.createElement('div');
+        item.className = 'reviewItem ' + (s.fullyCorrect ? 'good' : 'bad');
+        const status = s.fullyCorrect ? '<span class="pill good">Pravilno</span>' : '<span class="pill bad">Napačno / delno</span>';
+        item.innerHTML = `
+          <div class="reviewTitle">${idx + 1}. ${escapeHtml(q.question)} ${status}</div>
+          <div class="small muted">${escapeHtml(q.section)} • originalno vprašanje ${q.originalNumber}</div>
+          <p><strong>Točke:</strong> ${s.score} / ${s.max} <span class="muted">(+${s.correctSelected} pravilno označenih, -${s.wrongSelected} napačno označenih, ${s.missedCorrect} manjkajočih pravilnih)</span></p>
+          <div><strong>Tvoj odgovor:</strong>${listHtml(selectedTexts, 'Brez odgovora')}</div>
+          <div><strong>Pravilni odgovori:</strong>${listHtml(correctTexts, 'Ni podatka')}</div>
+        `;
+        review.appendChild(item);
+      });
+
+      const percent = maxTotal === 0 ? 0 : Math.round((total / maxTotal) * 100);
+      document.getElementById('scoreTotal').textContent = `${total} / ${maxTotal}`;
+      document.getElementById('scorePercent').textContent = `${percent}%`;
+      document.getElementById('scoreQuestions').textContent = `${fullyCorrectCount} / ${attempt.length}`;
+      document.getElementById('quiz').classList.add('hidden');
+      document.getElementById('results').classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    }
+
+    function listHtml(items, emptyText) {
+      if (!items || items.length === 0) return ` <span class="pill warn">${escapeHtml(emptyText)}</span>`;
+      return '<ul class="answerList">' + items.map(x => `<li>${escapeHtml(x)}</li>`).join('') + '</ul>';
+    }
+  </script>
+</body>
+</html>
